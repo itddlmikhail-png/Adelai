@@ -296,30 +296,6 @@ export function NightPlanet() {
         byIndex.set(i, node);
       }
 
-      // Draw sharp planet contour ring in screen space for a clean limb
-      {
-        // Approximate globe screen radius from a known limb point
-        const limb = new THREE.Vector3(1.01, 0, 0).applyMatrix4(earth.matrixWorld);
-        const limbNdc = limb.clone().project(camera);
-        const limbSx = (limbNdc.x * 0.5 + 0.5) * w;
-        const center = new THREE.Vector3(0, 0, 0).project(camera);
-        const cSx = (center.x * 0.5 + 0.5) * w;
-        const cSy = (-center.y * 0.5 + 0.5) * h;
-        const r = Math.abs(limbSx - cSx);
-        if (r > 10) {
-          octx.beginPath();
-          octx.arc(cSx, cSy, r, 0, Math.PI * 2);
-          octx.strokeStyle = "rgba(150, 205, 255, 0.38)";
-          octx.lineWidth = 1.35;
-          octx.stroke();
-          octx.beginPath();
-          octx.arc(cSx, cSy, r + 1.5, 0, Math.PI * 2);
-          octx.strokeStyle = "rgba(120, 185, 255, 0.12)";
-          octx.lineWidth = 4;
-          octx.stroke();
-        }
-      }
-
       if (pointer.active) {
         octx.lineCap = "round";
         for (const node of nodes) {
