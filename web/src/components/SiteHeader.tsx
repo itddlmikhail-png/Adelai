@@ -4,7 +4,7 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-content items-center justify-between px-6 py-6 md:px-8">
         <a
           href="#top"
-          className="font-display text-[17px] font-semibold tracking-tight text-white"
+          className="pointer-events-auto font-display text-[17px] font-semibold tracking-tight text-white"
         >
           Adelai
         </a>

@@ -1,65 +1,78 @@
+import { NightPlanet } from "./NightPlanet";
+
 export function Hero() {
   return (
-    <section
-      id="top"
-      className="relative isolate min-h-[100svh] overflow-hidden atmosphere"
-    >
-      <div className="noise" aria-hidden />
-      <div className="pointer-events-none absolute inset-0 grid-fade" aria-hidden />
+    <>
+      <section
+        id="top"
+        className="relative isolate min-h-[100svh] overflow-hidden bg-ink"
+      >
+        <NightPlanet />
 
-      <div className="relative mx-auto flex min-h-[100svh] max-w-content flex-col px-6 pb-0 pt-28 md:px-8 md:pt-32">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="animate-rise-in font-display text-[clamp(3.4rem,10vw,6.5rem)] font-bold leading-[0.92] tracking-tighter2 text-white">
-            Adelai
-          </h1>
-          <p
-            className="animate-rise-in mt-6 font-display text-[clamp(1.35rem,3.2vw,2rem)] font-medium leading-snug tracking-tight text-white/90 text-balance"
-            style={{ animationDelay: "80ms" }}
-          >
-            AI Operating System для мышления и создания
-          </p>
-          <p
-            className="animate-rise-in mx-auto mt-5 max-w-xl text-[17px] leading-relaxed text-mist text-balance"
-            style={{ animationDelay: "140ms" }}
-          >
-            Всё живёт внутри Projects. У каждого проекта — своя память и свой AI,
-            который понимает контекст.
-          </p>
-          <div
-            className="animate-rise-in mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
-            style={{ animationDelay: "200ms" }}
-          >
-            <a
-              href="#waitlist"
-              className="inline-flex h-12 min-w-[180px] items-center justify-center rounded-full bg-white px-6 text-[15px] font-semibold text-ink transition hover:bg-white/90"
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-ink via-ink/70 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32 bg-gradient-to-t from-ink to-transparent" />
+
+        <div className="pointer-events-none relative z-20 mx-auto flex min-h-[100svh] max-w-content flex-col justify-between px-6 pb-16 pt-28 md:px-8 md:pb-20 md:pt-32">
+          <div className="mx-auto max-w-3xl pt-[8vh] text-center md:pt-[10vh]">
+            <h1 className="animate-rise-in font-display text-[clamp(3.4rem,10vw,6.5rem)] font-bold leading-[0.92] tracking-tighter2 text-white drop-shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+              Adelai
+            </h1>
+            <p
+              className="animate-rise-in mt-6 font-display text-[clamp(1.35rem,3.2vw,2rem)] font-medium leading-snug tracking-tight text-white/90 text-balance"
+              style={{ animationDelay: "80ms" }}
             >
-              Получить доступ
-            </a>
-            <a
-              href="#product"
-              className="inline-flex h-12 min-w-[180px] items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-6 text-[15px] font-medium text-white transition hover:bg-white/[0.06]"
+              AI Operating System для мышления и создания
+            </p>
+            <p
+              className="animate-rise-in mx-auto mt-5 max-w-xl text-[17px] leading-relaxed text-mist text-balance"
+              style={{ animationDelay: "140ms" }}
             >
-              Смотреть продукт
-            </a>
+              Всё живёт внутри Projects. У каждого проекта — своя память и свой AI,
+              который понимает контекст.
+            </p>
+            <div
+              className="animate-rise-in pointer-events-auto mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+              style={{ animationDelay: "200ms" }}
+            >
+              <a
+                href="#waitlist"
+                className="inline-flex h-12 min-w-[180px] items-center justify-center rounded-full bg-white px-6 text-[15px] font-semibold text-ink transition hover:bg-white/90"
+              >
+                Получить доступ
+              </a>
+              <a
+                href="#product"
+                className="inline-flex h-12 min-w-[180px] items-center justify-center rounded-full border border-white/10 bg-black/30 px-6 text-[15px] font-medium text-white backdrop-blur-sm transition hover:bg-white/[0.08]"
+              >
+                Смотреть продукт
+              </a>
+            </div>
+            <p
+              className="animate-fade-in mt-8 text-xs tracking-[0.14em] text-mist/80 uppercase"
+              style={{ animationDelay: "360ms" }}
+            >
+              Проведи курсором — зажгутся огни
+            </p>
           </div>
-        </div>
 
-        <div
-          className="animate-rise-in relative mt-14 flex-1 md:mt-16"
-          style={{ animationDelay: "280ms" }}
-        >
+          <div className="pointer-events-none h-[38vh] md:h-[42vh]" aria-hidden />
+        </div>
+      </section>
+
+      <section className="relative border-t border-white/[0.06] bg-ink px-6 pb-8 pt-10 md:px-8">
+        <div className="animate-rise-in relative mx-auto max-w-5xl">
           <ProductStage />
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
 
 function ProductStage() {
   return (
-    <div className="relative mx-auto w-full max-w-5xl animate-float">
-      <div className="absolute -inset-x-10 -top-10 h-40 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_70%)] blur-2xl" />
-      <div className="relative overflow-hidden rounded-t-[22px] border border-white/[0.08] border-b-0 bg-ink-soft shadow-[0_-20px_80px_rgba(0,0,0,0.45)]">
+    <div className="relative mx-auto w-full">
+      <div className="absolute -inset-x-10 -top-10 h-40 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.06),transparent_70%)] blur-2xl" />
+      <div className="relative overflow-hidden rounded-[22px] border border-white/[0.08] bg-ink-soft shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
         <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
           <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
           <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
@@ -122,7 +135,6 @@ function ProductStage() {
           </aside>
         </div>
       </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink to-transparent" />
     </div>
   );
 }
