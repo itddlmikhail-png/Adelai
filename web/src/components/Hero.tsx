@@ -38,7 +38,7 @@ export function Hero() {
         <div className="flex-1" aria-hidden />
 
         <div
-          className="animate-rise-in pointer-events-auto mx-auto w-full max-w-lg pb-[env(safe-area-inset-bottom)]"
+          className="animate-rise-in pointer-events-auto mx-auto w-full max-w-xl pb-[env(safe-area-inset-bottom)]"
           style={{ animationDelay: "220ms" }}
         >
           <StoreButtons />
