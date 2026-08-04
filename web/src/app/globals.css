@@ -16,18 +16,21 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
+html,
 body {
   margin: 0;
-  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html:has(main#top),
+body:has(main#top) {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 ::selection {
