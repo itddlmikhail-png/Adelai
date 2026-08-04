@@ -7,8 +7,9 @@ export function Hero() {
       <NightPlanet />
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-ink via-ink/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-36 bg-gradient-to-t from-ink via-ink/70 to-transparent" />
 
-      <div className="pointer-events-none relative z-20 mx-auto flex h-full max-w-content flex-col px-6 pb-6 pt-[4.75rem] md:px-8 md:pb-8 md:pt-24">
+      <div className="pointer-events-none relative z-20 mx-auto flex h-full max-w-content flex-col px-6 pb-5 pt-[4.75rem] md:px-8 md:pb-7 md:pt-24">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="animate-rise-in font-display text-[clamp(2.8rem,9vw,5.5rem)] font-bold leading-[0.92] tracking-tighter2 text-white drop-shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
             Adelai
@@ -26,23 +27,22 @@ export function Hero() {
             Всё живёт внутри Projects. У каждого проекта — своя память и свой AI,
             который понимает контекст.
           </p>
-
-          <div
-            className="animate-rise-in pointer-events-auto mx-auto mt-6 flex max-w-md flex-col gap-2.5 sm:mt-7"
-            style={{ animationDelay: "180ms" }}
-          >
-            <StoreButtons />
-          </div>
-
           <p
-            className="animate-fade-in mt-5 text-[10px] tracking-[0.16em] text-mist/75 uppercase md:mt-6"
-            style={{ animationDelay: "280ms" }}
+            className="animate-fade-in mt-5 text-[10px] tracking-[0.16em] text-mist/75 uppercase"
+            style={{ animationDelay: "200ms" }}
           >
             Проведи курсором — планета наклонится, зажгутся огни
           </p>
         </div>
 
         <div className="flex-1" aria-hidden />
+
+        <div
+          className="animate-rise-in pointer-events-auto mx-auto w-full max-w-lg pb-[env(safe-area-inset-bottom)]"
+          style={{ animationDelay: "220ms" }}
+        >
+          <StoreButtons />
+        </div>
       </div>
     </section>
   );

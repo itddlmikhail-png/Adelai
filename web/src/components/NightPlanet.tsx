@@ -8,7 +8,8 @@ type CityLight = {
   z: number;
   size: number;
   base: number;
-  warmth: number;
+  hue: number;
+  links: number[];
 };
 
 type Star = {
@@ -18,30 +19,57 @@ type Star = {
   a: number;
 };
 
+type Projected = {
+  i: number;
+  sx: number;
+  sy: number;
+  z: number;
+  glow: number;
+  size: number;
+  hue: number;
+};
+
 function seedLights(count: number): CityLight[] {
   const lights: CityLight[] = [];
   let i = 0;
-  while (lights.length < count && i < count * 10) {
+  while (lights.length < count && i < count * 12) {
     i += 1;
     const lon = (Math.random() * 2 - 1) * Math.PI;
-    const lat = (Math.random() * 2 - 1) * (Math.PI / 2.2);
+    const lat = (Math.random() * 2 - 1) * (Math.PI / 2.25);
     const cluster = Math.random();
-    const clat = lat + (cluster > 0.7 ? (Math.random() - 0.5) * 0.2 : 0);
-    const clon = lon + (cluster > 0.7 ? (Math.random() - 0.5) * 0.25 : 0);
+    const clat = lat + (cluster > 0.62 ? (Math.random() - 0.5) * 0.22 : 0);
+    const clon = lon + (cluster > 0.62 ? (Math.random() - 0.5) * 0.28 : 0);
     const cosLat = Math.cos(clat);
     const x = cosLat * Math.sin(clon);
     const y = Math.sin(clat);
     const z = cosLat * Math.cos(clon);
-    if (z < -0.2) continue;
+    if (z < -0.18) continue;
     lights.push({
       x,
       y,
       z,
-      size: 0.5 + Math.random() * 1.8,
-      base: Math.random() * 0.1,
-      warmth: 0.3 + Math.random() * 0.7,
+      size: 0.55 + Math.random() * 1.7,
+      base: 0.04 + Math.random() * 0.1,
+      hue: 28 + Math.random() * 42 + (Math.random() > 0.82 ? 160 : 0),
+      links: [],
     });
   }
+
+  // Precompute nearest-neighbor links on the sphere
+  for (let a = 0; a < lights.length; a += 1) {
+    const distances: { i: number; d: number }[] = [];
+    for (let b = 0; b < lights.length; b += 1) {
+      if (a === b) continue;
+      const dx = lights[a].x - lights[b].x;
+      const dy = lights[a].y - lights[b].y;
+      const dz = lights[a].z - lights[b].z;
+      const d = dx * dx + dy * dy + dz * dz;
+      if (d < 0.085) distances.push({ i: b, d });
+    }
+    distances.sort((p, q) => p.d - q.d);
+    lights[a].links = distances.slice(0, 3).map((item) => item.i);
+  }
+
   return lights;
 }
 
@@ -61,19 +89,19 @@ function rotatePoint(
   yaw: number,
   pitch: number
 ) {
-  // yaw around Y
   const cosY = Math.cos(yaw);
   const sinY = Math.sin(yaw);
-  let x1 = x * cosY + z * sinY;
-  let z1 = -x * sinY + z * cosY;
-  let y1 = y;
-
-  // pitch around X
+  const x1 = x * cosY + z * sinY;
+  const z1 = -x * sinY + z * cosY;
   const cosP = Math.cos(pitch);
   const sinP = Math.sin(pitch);
-  const y2 = y1 * cosP - z1 * sinP;
-  const z2 = y1 * sinP + z1 * cosP;
+  const y2 = y * cosP - z1 * sinP;
+  const z2 = y * sinP + z1 * cosP;
   return { x: x1, y: y2, z: z2 };
+}
+
+function hsl(h: number, s: number, l: number, a = 1) {
+  return `hsla(${h}, ${s}%, ${l}%, ${a})`;
 }
 
 export function NightPlanet() {
@@ -92,7 +120,7 @@ export function NightPlanet() {
     let w = 0;
     let h = 0;
     let dpr = 1;
-    const lights = seedLights(480);
+    const lights = seedLights(360);
     let stars: Star[] = [];
     const glow = new Float32Array(lights.length);
 
@@ -116,8 +144,6 @@ export function NightPlanet() {
 
     const draw = () => {
       time += 0.016;
-
-      // Smooth tilt toward cursor
       tilt.yaw += (targetTilt.yaw - tilt.yaw) * 0.08;
       tilt.pitch += (targetTilt.pitch - tilt.pitch) * 0.08;
 
@@ -125,15 +151,15 @@ export function NightPlanet() {
 
       const space = ctx.createRadialGradient(
         w * 0.5,
-        h * 0.4,
+        h * 0.38,
         0,
         w * 0.5,
         h * 0.5,
-        Math.max(w, h) * 0.8
+        Math.max(w, h) * 0.82
       );
-      space.addColorStop(0, "#0c1018");
-      space.addColorStop(0.55, "#09090b");
-      space.addColorStop(1, "#050507");
+      space.addColorStop(0, "#10182a");
+      space.addColorStop(0.45, "#0a0f1a");
+      space.addColorStop(1, "#05060a");
       ctx.fillStyle = space;
       ctx.fillRect(0, 0, w, h);
 
@@ -147,59 +173,58 @@ export function NightPlanet() {
 
       const radius = Math.min(w, h) * (w < 640 ? 0.42 : 0.4);
       const cx = w * 0.5 + tilt.yaw * radius * 0.12;
-      const cy = h * 0.62 + tilt.pitch * radius * 0.1;
+      const cy = h * 0.6 + tilt.pitch * radius * 0.1;
 
-      // Cursor-following atmospheric glow behind planet
       if (pointer.active) {
         const gx = pointer.x * w;
         const gy = pointer.y * h;
-        const cursorGlow = ctx.createRadialGradient(gx, gy, 0, gx, gy, radius * 0.9);
-        cursorGlow.addColorStop(0, "rgba(255,210,140,0.16)");
-        cursorGlow.addColorStop(0.35, "rgba(160,190,255,0.08)");
-        cursorGlow.addColorStop(1, "rgba(160,190,255,0)");
+        const cursorGlow = ctx.createRadialGradient(gx, gy, 0, gx, gy, radius * 0.95);
+        cursorGlow.addColorStop(0, "rgba(255,190,110,0.18)");
+        cursorGlow.addColorStop(0.35, "rgba(120,180,255,0.1)");
+        cursorGlow.addColorStop(1, "rgba(80,120,255,0)");
         ctx.fillStyle = cursorGlow;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Outer atmosphere
-      const halo = ctx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 1.32);
-      halo.addColorStop(0, "rgba(120,160,255,0)");
-      halo.addColorStop(0.6, "rgba(100,150,255,0.1)");
-      halo.addColorStop(1, "rgba(100,150,255,0)");
+      // Colorful atmosphere / aurora rim
+      const halo = ctx.createRadialGradient(cx, cy, radius * 0.78, cx, cy, radius * 1.36);
+      halo.addColorStop(0, "rgba(80,160,255,0)");
+      halo.addColorStop(0.55, "rgba(70,170,255,0.16)");
+      halo.addColorStop(0.78, "rgba(160,90,255,0.1)");
+      halo.addColorStop(1, "rgba(255,120,80,0)");
       ctx.fillStyle = halo;
       ctx.beginPath();
-      ctx.arc(cx, cy, radius * 1.32, 0, Math.PI * 2);
+      ctx.arc(cx, cy, radius * 1.36, 0, Math.PI * 2);
       ctx.fill();
 
-      // Tilted planet shadow ellipse feel via transform-ish offset light
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.clip();
 
-      const lightX = cx - radius * (0.35 - tilt.yaw * 0.25);
-      const lightY = cy - radius * (0.42 - tilt.pitch * 0.2);
-      const body = ctx.createRadialGradient(lightX, lightY, radius * 0.08, cx, cy, radius);
-      body.addColorStop(0, "#1c2a44");
-      body.addColorStop(0.35, "#101929");
-      body.addColorStop(0.72, "#0a1019");
-      body.addColorStop(1, "#05070c");
+      // Colorful planet body — deep ocean + lit limb
+      const lightX = cx - radius * (0.38 - tilt.yaw * 0.28);
+      const lightY = cy - radius * (0.4 - tilt.pitch * 0.22);
+      const body = ctx.createRadialGradient(lightX, lightY, radius * 0.05, cx, cy, radius);
+      body.addColorStop(0, "#4aa3ff");
+      body.addColorStop(0.22, "#1f6fd0");
+      body.addColorStop(0.48, "#123a7a");
+      body.addColorStop(0.72, "#0a1d40");
+      body.addColorStop(1, "#050d1c");
       ctx.fillStyle = body;
       ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
-      // Soft landmasses with tilt
-      ctx.globalAlpha = 0.2;
-      ctx.fillStyle = "#162033";
-      for (let i = 0; i < 16; i += 1) {
-        const a = (i / 16) * Math.PI * 2 + tilt.yaw;
-        const rx = radius * (0.16 + (i % 4) * 0.05);
-        const ry = radius * (0.07 + (i % 3) * 0.035);
+      // Continent washes
+      ctx.globalAlpha = 0.34;
+      for (let i = 0; i < 14; i += 1) {
+        const a = (i / 14) * Math.PI * 2 + tilt.yaw * 0.8;
+        ctx.fillStyle = i % 2 === 0 ? "#2f8f6b" : "#3d7a4a";
         ctx.beginPath();
         ctx.ellipse(
-          cx + Math.cos(a + tilt.pitch) * radius * 0.32,
-          cy + Math.sin(a * 1.2) * radius * 0.26,
-          rx,
-          ry,
+          cx + Math.cos(a + tilt.pitch) * radius * 0.34,
+          cy + Math.sin(a * 1.15) * radius * 0.28,
+          radius * (0.14 + (i % 4) * 0.04),
+          radius * (0.07 + (i % 3) * 0.03),
           a + tilt.yaw,
           0,
           Math.PI * 2
@@ -208,20 +233,32 @@ export function NightPlanet() {
       }
       ctx.globalAlpha = 1;
 
+      // Soft night shade
       const night = ctx.createLinearGradient(
-        cx - radius + tilt.yaw * radius * 0.4,
+        cx - radius + tilt.yaw * radius * 0.45,
         cy,
-        cx + radius + tilt.yaw * radius * 0.4,
+        cx + radius + tilt.yaw * radius * 0.45,
         cy
       );
-      night.addColorStop(0, "rgba(0,0,0,0.12)");
-      night.addColorStop(0.5, "rgba(0,0,0,0.04)");
-      night.addColorStop(1, "rgba(0,0,0,0.58)");
+      night.addColorStop(0, "rgba(5,10,30,0.08)");
+      night.addColorStop(0.45, "rgba(5,10,30,0.12)");
+      night.addColorStop(1, "rgba(2,4,14,0.62)");
       ctx.fillStyle = night;
+      ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+
+      // Aurora band
+      const aurora = ctx.createLinearGradient(cx - radius, cy - radius * 0.7, cx + radius, cy + radius * 0.2);
+      aurora.addColorStop(0, "rgba(80,255,200,0)");
+      aurora.addColorStop(0.35, "rgba(90,255,190,0.08)");
+      aurora.addColorStop(0.55, "rgba(160,110,255,0.1)");
+      aurora.addColorStop(1, "rgba(255,120,180,0)");
+      ctx.fillStyle = aurora;
       ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
       const px = pointer.x * w;
       const py = pointer.y * h;
+      const projected: Projected[] = [];
+      const projectedByIndex = new Map<number, Projected>();
 
       for (let i = 0; i < lights.length; i += 1) {
         const light = lights[i];
@@ -232,7 +269,7 @@ export function NightPlanet() {
           tilt.yaw * 0.85 + time * 0.012,
           tilt.pitch * 0.7
         );
-        if (spun.z < 0.04) {
+        if (spun.z < 0.05) {
           glow[i] *= 0.88;
           continue;
         }
@@ -242,59 +279,110 @@ export function NightPlanet() {
         const sy = cy + spun.y * radius * 0.92 * perspective;
         const dist = Math.hypot(px - sx, py - sy);
         const influence = pointer.active
-          ? Math.max(0, 1 - dist / (radius * 0.32))
+          ? Math.max(0, 1 - dist / (radius * 0.34))
           : 0;
-        const target =
-          light.base + influence ** 1.45 * (0.85 + light.warmth * 0.55);
+        const target = light.base + influence ** 1.35 * 1.15;
         glow[i] += (target - glow[i]) * 0.18;
 
-        if (glow[i] < 0.025) continue;
+        if (glow[i] < 0.03) continue;
 
-        const alpha = glow[i] * (0.3 + spun.z * 0.7);
-        const size = light.size * perspective * (0.75 + glow[i] * 1.55);
-        const warm = light.warmth;
-        const r = 255;
-        const g = Math.floor(205 + warm * 40);
-        const b = Math.floor(130 + (1 - warm) * 70);
+        const node: Projected = {
+          i,
+          sx,
+          sy,
+          z: spun.z,
+          glow: glow[i],
+          size: light.size * perspective * (0.75 + glow[i] * 1.5),
+          hue: light.hue,
+        };
+        projected.push(node);
+        projectedByIndex.set(i, node);
+      }
 
-        const bloom = ctx.createRadialGradient(sx, sy, 0, sx, sy, size * 5.5);
-        bloom.addColorStop(0, `rgba(${r},${g},${b},${alpha * 0.6})`);
-        bloom.addColorStop(0.4, `rgba(${r},${g},${b},${alpha * 0.16})`);
-        bloom.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      // Connection lines between lit neighbors
+      ctx.lineCap = "round";
+      for (const node of projected) {
+        const source = lights[node.i];
+        for (const linkIndex of source.links) {
+          if (linkIndex <= node.i) continue;
+          const otherGlow = glow[linkIndex];
+          if (otherGlow < 0.08 || node.glow < 0.08) continue;
+
+          const other = projectedByIndex.get(linkIndex);
+          if (!other) continue;
+
+          const strength = Math.min(node.glow, otherGlow);
+          const midX = (node.sx + other.sx) / 2;
+          const midY = (node.sy + other.sy) / 2 - 6 * strength;
+          const grad = ctx.createLinearGradient(node.sx, node.sy, other.sx, other.sy);
+          grad.addColorStop(0, hsl(node.hue, 95, 65, 0.05 + strength * 0.55));
+          grad.addColorStop(0.5, hsl((node.hue + other.hue) / 2, 100, 72, 0.12 + strength * 0.5));
+          grad.addColorStop(1, hsl(other.hue, 95, 65, 0.05 + strength * 0.55));
+
+          ctx.beginPath();
+          ctx.moveTo(node.sx, node.sy);
+          ctx.quadraticCurveTo(midX, midY, other.sx, other.sy);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 0.6 + strength * 1.8;
+          ctx.stroke();
+
+          // traveling pulse
+          const t = (Math.sin(time * 3 + node.i * 0.7) + 1) / 2;
+          const pulseX = node.sx + (other.sx - node.sx) * t;
+          const pulseY = node.sy + (other.sy - node.sy) * t - 6 * strength * Math.sin(Math.PI * t);
+          ctx.beginPath();
+          ctx.fillStyle = hsl((node.hue + other.hue) / 2, 100, 78, 0.35 + strength * 0.45);
+          ctx.arc(pulseX, pulseY, 1.1 + strength * 1.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Lights on top of links
+      for (const node of projected) {
+        const alpha = node.glow * (0.35 + node.z * 0.65);
+        const bloom = ctx.createRadialGradient(
+          node.sx,
+          node.sy,
+          0,
+          node.sx,
+          node.sy,
+          node.size * 5.5
+        );
+        bloom.addColorStop(0, hsl(node.hue, 100, 72, alpha * 0.75));
+        bloom.addColorStop(0.4, hsl(node.hue, 95, 60, alpha * 0.2));
+        bloom.addColorStop(1, hsl(node.hue, 90, 50, 0));
         ctx.fillStyle = bloom;
         ctx.beginPath();
-        ctx.arc(sx, sy, size * 5.5, 0, Math.PI * 2);
+        ctx.arc(node.sx, node.sy, node.size * 5.5, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
-        ctx.fillStyle = `rgba(255,250,230,${Math.min(1, alpha * 1.3)})`;
-        ctx.arc(sx, sy, Math.max(0.6, size * 0.5), 0, Math.PI * 2);
+        ctx.fillStyle = hsl(node.hue, 100, 88, Math.min(1, alpha * 1.35));
+        ctx.arc(node.sx, node.sy, Math.max(0.7, node.size * 0.5), 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Soft specular sheen following tilt / cursor
-      const sheenX = cx + (pointer.active ? (px - cx) * 0.15 : -radius * 0.2);
+      // Specular sheen
+      const sheenX = cx + (pointer.active ? (px - cx) * 0.16 : -radius * 0.2);
       const sheenY = cy + (pointer.active ? (py - cy) * 0.12 : -radius * 0.25);
       const sheen = ctx.createRadialGradient(sheenX, sheenY, 0, sheenX, sheenY, radius * 0.55);
-      sheen.addColorStop(0, "rgba(200,220,255,0.14)");
-      sheen.addColorStop(0.5, "rgba(160,190,255,0.04)");
-      sheen.addColorStop(1, "rgba(160,190,255,0)");
+      sheen.addColorStop(0, "rgba(180,230,255,0.2)");
+      sheen.addColorStop(0.45, "rgba(120,190,255,0.06)");
+      sheen.addColorStop(1, "rgba(120,190,255,0)");
       ctx.fillStyle = sheen;
       ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
       ctx.restore();
 
-      // Rim
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(170,200,255,0.2)";
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(140,210,255,0.28)";
+      ctx.lineWidth = 1.3;
       ctx.stroke();
 
-      // Bottom page fade
       const fade = ctx.createLinearGradient(0, h * 0.78, 0, h);
       fade.addColorStop(0, "rgba(9,9,11,0)");
-      fade.addColorStop(1, "rgba(9,9,11,0.55)");
+      fade.addColorStop(1, "rgba(9,9,11,0.5)");
       ctx.fillStyle = fade;
       ctx.fillRect(0, h * 0.78, w, h * 0.22);
 
@@ -308,7 +396,6 @@ export function NightPlanet() {
       pointer.x = nx;
       pointer.y = ny;
       pointer.active = true;
-      // Map cursor to planet tilt (radians)
       targetTilt.yaw = (nx - 0.5) * 0.85;
       targetTilt.pitch = (ny - 0.55) * 0.55;
     };
