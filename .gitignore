@@ -1,6 +1,11 @@
 .DS_Store
 build/
 DerivedData/
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+*.log
 *.xcuserstate
 xcuserdata/
 *.moved-aside
@@ -12,3 +17,5 @@ xcuserdata/
 .netrc
 .idea/
 *.playground
+web/out/
+web/.next/
