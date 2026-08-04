@@ -31,7 +31,7 @@ export function Hero() {
             className="animate-fade-in mt-5 text-[10px] tracking-[0.16em] text-mist/75 uppercase"
             style={{ animationDelay: "200ms" }}
           >
-            Проведи курсором — планета наклонится, зажгутся огни
+            Проведи курсором — огоньки вспыхнут и соединятся
           </p>
         </div>
 
