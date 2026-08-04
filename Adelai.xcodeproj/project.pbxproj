@@ -1,0 +1,581 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FAEF304A9DFD431DB14BE2FF /* AdelaiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C435747CCED9499DBEDC29D7 /* AdelaiApp.swift */; };
+		4E040B33D53045E794D89D92 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF9512454374A1B8F2F3097 /* DependencyContainer.swift */; };
+		863F5C56F4B841C7812BC208 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88695350110A44FEA7B87997 /* RootView.swift */; };
+		FA9C61912F5641D9894F3F91 /* AdelaiColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AD874B39254D6A85F877D1 /* AdelaiColors.swift */; };
+		0DB0F9A54DF648C7AA52E16C /* AdelaiSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4352766A714B1E87FC68C8 /* AdelaiSpacing.swift */; };
+		D0F563A0304841BEA6950693 /* AdelaiTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEEF216C22C545419AF7B53F /* AdelaiTypography.swift */; };
+		AC062319BF0B49298E50570E /* AdelaiButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8F06EB18E0410099B1816B /* AdelaiButton.swift */; };
+		2260F655B6A442CDB8E9E67B /* AdelaiCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313E239B5AF546699141649D /* AdelaiCard.swift */; };
+		2E3C3C75422844F283E7BC18 /* AdelaiControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B7FDB656B64E7DB67453A4 /* AdelaiControls.swift */; };
+		F7DFCCC0C1DC4146A3A22B1F /* AdelaiMarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E25E34D54B14A5BACE481B8 /* AdelaiMarkdownView.swift */; };
+		FC866A62400544ADBE526F2F /* AdelaiScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A9E813191F43B4ABB03091 /* AdelaiScreen.swift */; };
+		073FF8B9A8A540B2A4B27D98 /* AdelaiSearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D2807CA59546F5BAD1AF77 /* AdelaiSearchBar.swift */; };
+		E5C4DD97086642E09D842E8A /* AdelaiUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 068C88DDB261421A9D1478E2 /* AdelaiUtilities.swift */; };
+		BF04D92CE8E1410FA0B0AFD6 /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD3C0A06AD743709740DC96 /* Repositories.swift */; };
+		EA816AD45DAD46369F4095EE /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC0ECEB339EB4194A480D88A /* SeedData.swift */; };
+		A8AACBD631D9492F8559D2C2 /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D14292CCAA426FB5109FB8 /* Services.swift */; };
+		DE6AD531D5C3415B98A5B223 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42CE0081B2F04212BB65F628 /* AppStore.swift */; };
+		F0C8B829EB78416C9DB0BDA0 /* SwiftDataModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33A56554A0843C19BF69498 /* SwiftDataModels.swift */; };
+		027583EB44E14B89B7A79A5D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95DE1EFFF1C4455BB35E2A77 /* Models.swift */; };
+		1FAADFAC48874A12BA891247 /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A01AA20ADF78477C9D7A9B7E /* Repositories.swift */; };
+		F66CAC20C8EE4A289184BA21 /* AIConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428E75ED95D74195B0A3EB3E /* AIConversationView.swift */; };
+		74F6ADE2805C4E92B1D8C733 /* AIHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5E63884420E4C1DB153D9F5 /* AIHubView.swift */; };
+		CC4B3166629B44CEB99AE978 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 518B8AD065BB4F58A9B0A29E /* HomeView.swift */; };
+		761EC054758B4D82A39E15B7 /* ViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9686DF9E6F44FFE83342EB1 /* ViewModels.swift */; };
+		8FAE336341A94E27BE429E18 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB799E12BD104C0691507B87 /* OnboardingView.swift */; };
+		3B349A4BA2A54C3CA4C08A98 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5348E41947A47D58E5BA80B /* ProfileView.swift */; };
+		73BBE203C2804512BC01F9A2 /* ProjectSectionsA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 343A8F3069F54E9E8D4DC03F /* ProjectSectionsA.swift */; };
+		DA2A752ED07F4A91825AF1B2 /* ProjectSectionsB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F7679BCF7FF47DAABF9EB7D /* ProjectSectionsB.swift */; };
+		E77F417EEF7F4D2C8A0DA30C /* ProjectWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657E6BC4FFA84A1F8E2D7B96 /* ProjectWorkspaceView.swift */; };
+		1DFCFB9903774578A60CE84E /* CreateProjectSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977A511D770A4F72896D06AC /* CreateProjectSheet.swift */; };
+		2600B0D58CC34932B39BC51B /* ProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDD2ADB65244040B2437914 /* ProjectsView.swift */; };
+		19083AB76B674FA4B62D9535 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A20CB24F604C20915A1336 /* SearchView.swift */; };
+		C5BD801AA7ED49C2A3B758FF /* SubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2A6EB654CA410B9FFCF078 /* SubscriptionView.swift */; };
+		C67A869651154223B689034D /* WorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CF407C1F844F97B12A9491 /* WorkspaceView.swift */; };
+		C58BC66A00124801A63DE0DD /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B22D22593BD462182957591 /* MainTabView.swift */; };
+		A822EACA8C2C4385B77380EF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C6AE811D3D942B2A4C48F3B /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		95111B3DD1CC44668145A559 /* Adelai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Adelai.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C435747CCED9499DBEDC29D7 /* AdelaiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiApp.swift; sourceTree = "<group>"; };
+		6BF9512454374A1B8F2F3097 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
+		88695350110A44FEA7B87997 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		95AD874B39254D6A85F877D1 /* AdelaiColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiColors.swift; sourceTree = "<group>"; };
+		7C4352766A714B1E87FC68C8 /* AdelaiSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiSpacing.swift; sourceTree = "<group>"; };
+		AEEF216C22C545419AF7B53F /* AdelaiTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiTypography.swift; sourceTree = "<group>"; };
+		1E8F06EB18E0410099B1816B /* AdelaiButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiButton.swift; sourceTree = "<group>"; };
+		313E239B5AF546699141649D /* AdelaiCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiCard.swift; sourceTree = "<group>"; };
+		10B7FDB656B64E7DB67453A4 /* AdelaiControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiControls.swift; sourceTree = "<group>"; };
+		8E25E34D54B14A5BACE481B8 /* AdelaiMarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiMarkdownView.swift; sourceTree = "<group>"; };
+		25A9E813191F43B4ABB03091 /* AdelaiScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiScreen.swift; sourceTree = "<group>"; };
+		41D2807CA59546F5BAD1AF77 /* AdelaiSearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiSearchBar.swift; sourceTree = "<group>"; };
+		068C88DDB261421A9D1478E2 /* AdelaiUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdelaiUtilities.swift; sourceTree = "<group>"; };
+		3DD3C0A06AD743709740DC96 /* Repositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
+		DC0ECEB339EB4194A480D88A /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedData.swift; sourceTree = "<group>"; };
+		C3D14292CCAA426FB5109FB8 /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
+		42CE0081B2F04212BB65F628 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		A33A56554A0843C19BF69498 /* SwiftDataModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataModels.swift; sourceTree = "<group>"; };
+		95DE1EFFF1C4455BB35E2A77 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		A01AA20ADF78477C9D7A9B7E /* Repositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
+		428E75ED95D74195B0A3EB3E /* AIConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConversationView.swift; sourceTree = "<group>"; };
+		A5E63884420E4C1DB153D9F5 /* AIHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIHubView.swift; sourceTree = "<group>"; };
+		518B8AD065BB4F58A9B0A29E /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		F9686DF9E6F44FFE83342EB1 /* ViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModels.swift; sourceTree = "<group>"; };
+		FB799E12BD104C0691507B87 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		C5348E41947A47D58E5BA80B /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		343A8F3069F54E9E8D4DC03F /* ProjectSectionsA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSectionsA.swift; sourceTree = "<group>"; };
+		7F7679BCF7FF47DAABF9EB7D /* ProjectSectionsB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSectionsB.swift; sourceTree = "<group>"; };
+		657E6BC4FFA84A1F8E2D7B96 /* ProjectWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectWorkspaceView.swift; sourceTree = "<group>"; };
+		977A511D770A4F72896D06AC /* CreateProjectSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateProjectSheet.swift; sourceTree = "<group>"; };
+		FBDD2ADB65244040B2437914 /* ProjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
+		C1A20CB24F604C20915A1336 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		2C2A6EB654CA410B9FFCF078 /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
+		07CF407C1F844F97B12A9491 /* WorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
+		0B22D22593BD462182957591 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		5C6AE811D3D942B2A4C48F3B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		30B84D24A96A42DABDE83647 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		696E5DE5994D4A5EB6FA5A7A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DC322D62C9144FFC8D5DD0E0 = {
+			isa = PBXGroup;
+			children = (
+				E867649EA30C40849F5900D2 /* Adelai */,
+				BF7B703E2AA648A18BD9F4FE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BF7B703E2AA648A18BD9F4FE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				95111B3DD1CC44668145A559 /* Adelai.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E867649EA30C40849F5900D2 /* Adelai */ = {
+			isa = PBXGroup;
+			children = (
+				9AD8471C9AAE4597A452346C /* App */,
+				C28BD0CA17B34ED78B5EA0B7 /* Core */,
+				252C073282464E729C66029F /* Data */,
+				64C1CA6EC66E43A4884553B2 /* Domain */,
+				C08C6DC2CBF243F8A4050728 /* Features */,
+				F38EF34ECDED4C049327F780 /* Navigation */,
+				1F9A99DD918D41D39F1A297C /* Resources */,
+			);
+			path = Adelai;
+			sourceTree = "<group>";
+		};
+		9AD8471C9AAE4597A452346C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				C435747CCED9499DBEDC29D7 /* AdelaiApp.swift */,
+				6BF9512454374A1B8F2F3097 /* DependencyContainer.swift */,
+				88695350110A44FEA7B87997 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C28BD0CA17B34ED78B5EA0B7 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				974C9DE839A047B5A7B1FD26 /* DesignSystem */,
+				6C210D54DE764A11A4F4C59C /* Utilities */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		974C9DE839A047B5A7B1FD26 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				2B104D1C44524ED69F9C5A94 /* Components */,
+				95AD874B39254D6A85F877D1 /* AdelaiColors.swift */,
+				7C4352766A714B1E87FC68C8 /* AdelaiSpacing.swift */,
+				AEEF216C22C545419AF7B53F /* AdelaiTypography.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		2B104D1C44524ED69F9C5A94 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				1E8F06EB18E0410099B1816B /* AdelaiButton.swift */,
+				313E239B5AF546699141649D /* AdelaiCard.swift */,
+				10B7FDB656B64E7DB67453A4 /* AdelaiControls.swift */,
+				8E25E34D54B14A5BACE481B8 /* AdelaiMarkdownView.swift */,
+				25A9E813191F43B4ABB03091 /* AdelaiScreen.swift */,
+				41D2807CA59546F5BAD1AF77 /* AdelaiSearchBar.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		6C210D54DE764A11A4F4C59C /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				068C88DDB261421A9D1478E2 /* AdelaiUtilities.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		252C073282464E729C66029F /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				26A212D49A86418F9386A99D /* Repositories */,
+				A64D30780A8E41C1A6D8D7F6 /* Seed */,
+				D6EFC7BF19C84D688C6B91F9 /* Services */,
+				B9BF67410464461AAD921CF7 /* SwiftData */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		26A212D49A86418F9386A99D /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				3DD3C0A06AD743709740DC96 /* Repositories.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		A64D30780A8E41C1A6D8D7F6 /* Seed */ = {
+			isa = PBXGroup;
+			children = (
+				DC0ECEB339EB4194A480D88A /* SeedData.swift */,
+			);
+			path = Seed;
+			sourceTree = "<group>";
+		};
+		D6EFC7BF19C84D688C6B91F9 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C3D14292CCAA426FB5109FB8 /* Services.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		B9BF67410464461AAD921CF7 /* SwiftData */ = {
+			isa = PBXGroup;
+			children = (
+				42CE0081B2F04212BB65F628 /* AppStore.swift */,
+				A33A56554A0843C19BF69498 /* SwiftDataModels.swift */,
+			);
+			path = SwiftData;
+			sourceTree = "<group>";
+		};
+		64C1CA6EC66E43A4884553B2 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				9C392FFB32944625A8BDA371 /* Models */,
+				A5C49AA63D6A4FC6B2C50622 /* Protocols */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		9C392FFB32944625A8BDA371 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				95DE1EFFF1C4455BB35E2A77 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A5C49AA63D6A4FC6B2C50622 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				A01AA20ADF78477C9D7A9B7E /* Repositories.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		C08C6DC2CBF243F8A4050728 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				1EF97B79157E48E0890DE8BF /* AI */,
+				1B40F2DBF8C3488092523134 /* Home */,
+				59A2969307754D6BB5EB3EF2 /* Onboarding */,
+				3024C05CFAAF42D8B46E5E62 /* Profile */,
+				7DA6C5C4A8FF4F3B86641F54 /* ProjectDetail */,
+				020E5BC861554D61B56AA24D /* Projects */,
+				837B707854BA4F39AD295931 /* Search */,
+				E88E368324F6481D92C026B4 /* Subscription */,
+				A5D2CBD6B38D49C79D834D09 /* Workspace */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		1EF97B79157E48E0890DE8BF /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				428E75ED95D74195B0A3EB3E /* AIConversationView.swift */,
+				A5E63884420E4C1DB153D9F5 /* AIHubView.swift */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
+		1B40F2DBF8C3488092523134 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				518B8AD065BB4F58A9B0A29E /* HomeView.swift */,
+				F9686DF9E6F44FFE83342EB1 /* ViewModels.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		59A2969307754D6BB5EB3EF2 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				FB799E12BD104C0691507B87 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		3024C05CFAAF42D8B46E5E62 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				C5348E41947A47D58E5BA80B /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		7DA6C5C4A8FF4F3B86641F54 /* ProjectDetail */ = {
+			isa = PBXGroup;
+			children = (
+				343A8F3069F54E9E8D4DC03F /* ProjectSectionsA.swift */,
+				7F7679BCF7FF47DAABF9EB7D /* ProjectSectionsB.swift */,
+				657E6BC4FFA84A1F8E2D7B96 /* ProjectWorkspaceView.swift */,
+			);
+			path = ProjectDetail;
+			sourceTree = "<group>";
+		};
+		020E5BC861554D61B56AA24D /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				977A511D770A4F72896D06AC /* CreateProjectSheet.swift */,
+				FBDD2ADB65244040B2437914 /* ProjectsView.swift */,
+			);
+			path = Projects;
+			sourceTree = "<group>";
+		};
+		837B707854BA4F39AD295931 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				C1A20CB24F604C20915A1336 /* SearchView.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		E88E368324F6481D92C026B4 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				2C2A6EB654CA410B9FFCF078 /* SubscriptionView.swift */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
+		A5D2CBD6B38D49C79D834D09 /* Workspace */ = {
+			isa = PBXGroup;
+			children = (
+				07CF407C1F844F97B12A9491 /* WorkspaceView.swift */,
+			);
+			path = Workspace;
+			sourceTree = "<group>";
+		};
+		F38EF34ECDED4C049327F780 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				0B22D22593BD462182957591 /* MainTabView.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		1F9A99DD918D41D39F1A297C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5C6AE811D3D942B2A4C48F3B /* Assets.xcassets */,
+				30B84D24A96A42DABDE83647 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8F3CB2B8961D462BBDC1E832 /* Adelai */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 11D254A1B6094CE7AE47DBE5 /* Build configuration list for PBXNativeTarget "Adelai" */;
+			buildPhases = (
+				FC091A057C6D4A888B0CE05E /* Sources */,
+				696E5DE5994D4A5EB6FA5A7A /* Frameworks */,
+				CFDF1F00B7E24DA18C4CE9BC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Adelai;
+			productName = Adelai;
+			productReference = 95111B3DD1CC44668145A559 /* Adelai.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A356B306E0F6412798F7C2AC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					8F3CB2B8961D462BBDC1E832 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 89BBC9EB79414664AE2BA3D6 /* Build configuration list for PBXProject "Adelai" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DC322D62C9144FFC8D5DD0E0;
+			productRefGroup = BF7B703E2AA648A18BD9F4FE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8F3CB2B8961D462BBDC1E832 /* Adelai */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CFDF1F00B7E24DA18C4CE9BC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A822EACA8C2C4385B77380EF /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FC091A057C6D4A888B0CE05E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAEF304A9DFD431DB14BE2FF /* AdelaiApp.swift in Sources */,
+				4E040B33D53045E794D89D92 /* DependencyContainer.swift in Sources */,
+				863F5C56F4B841C7812BC208 /* RootView.swift in Sources */,
+				FA9C61912F5641D9894F3F91 /* AdelaiColors.swift in Sources */,
+				0DB0F9A54DF648C7AA52E16C /* AdelaiSpacing.swift in Sources */,
+				D0F563A0304841BEA6950693 /* AdelaiTypography.swift in Sources */,
+				AC062319BF0B49298E50570E /* AdelaiButton.swift in Sources */,
+				2260F655B6A442CDB8E9E67B /* AdelaiCard.swift in Sources */,
+				2E3C3C75422844F283E7BC18 /* AdelaiControls.swift in Sources */,
+				F7DFCCC0C1DC4146A3A22B1F /* AdelaiMarkdownView.swift in Sources */,
+				FC866A62400544ADBE526F2F /* AdelaiScreen.swift in Sources */,
+				073FF8B9A8A540B2A4B27D98 /* AdelaiSearchBar.swift in Sources */,
+				E5C4DD97086642E09D842E8A /* AdelaiUtilities.swift in Sources */,
+				BF04D92CE8E1410FA0B0AFD6 /* Repositories.swift in Sources */,
+				EA816AD45DAD46369F4095EE /* SeedData.swift in Sources */,
+				A8AACBD631D9492F8559D2C2 /* Services.swift in Sources */,
+				DE6AD531D5C3415B98A5B223 /* AppStore.swift in Sources */,
+				F0C8B829EB78416C9DB0BDA0 /* SwiftDataModels.swift in Sources */,
+				027583EB44E14B89B7A79A5D /* Models.swift in Sources */,
+				1FAADFAC48874A12BA891247 /* Repositories.swift in Sources */,
+				F66CAC20C8EE4A289184BA21 /* AIConversationView.swift in Sources */,
+				74F6ADE2805C4E92B1D8C733 /* AIHubView.swift in Sources */,
+				CC4B3166629B44CEB99AE978 /* HomeView.swift in Sources */,
+				761EC054758B4D82A39E15B7 /* ViewModels.swift in Sources */,
+				8FAE336341A94E27BE429E18 /* OnboardingView.swift in Sources */,
+				3B349A4BA2A54C3CA4C08A98 /* ProfileView.swift in Sources */,
+				73BBE203C2804512BC01F9A2 /* ProjectSectionsA.swift in Sources */,
+				DA2A752ED07F4A91825AF1B2 /* ProjectSectionsB.swift in Sources */,
+				E77F417EEF7F4D2C8A0DA30C /* ProjectWorkspaceView.swift in Sources */,
+				1DFCFB9903774578A60CE84E /* CreateProjectSheet.swift in Sources */,
+				2600B0D58CC34932B39BC51B /* ProjectsView.swift in Sources */,
+				19083AB76B674FA4B62D9535 /* SearchView.swift in Sources */,
+				C5BD801AA7ED49C2A3B758FF /* SubscriptionView.swift in Sources */,
+				C67A869651154223B689034D /* WorkspaceView.swift in Sources */,
+				C58BC66A00124801A63DE0DD /* MainTabView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		093068081B05452AB2DFA86B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		F4907D170E4C4F61BC1FE4EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+		54C9B8FC66B6421E8E7CE3CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Adelai/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adelai.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		47F259AD56D947AAAFC29FAF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Adelai/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adelai.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		89BBC9EB79414664AE2BA3D6 /* Build configuration list for PBXProject "Adelai" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				093068081B05452AB2DFA86B /* Debug */,
+				F4907D170E4C4F61BC1FE4EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		11D254A1B6094CE7AE47DBE5 /* Build configuration list for PBXNativeTarget "Adelai" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				54C9B8FC66B6421E8E7CE3CA /* Debug */,
+				47F259AD56D947AAAFC29FAF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A356B306E0F6412798F7C2AC /* Project object */;
+}
