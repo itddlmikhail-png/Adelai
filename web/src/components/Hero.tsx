@@ -3,11 +3,11 @@ import { StoreButtons } from "./StoreButtons";
 
 export function Hero() {
   return (
-    <section className="relative isolate h-[100svh] overflow-hidden bg-ink">
+    <section className="relative isolate h-[100svh] overflow-hidden bg-black">
       <NightPlanet />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-ink via-ink/60 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-36 bg-gradient-to-t from-ink via-ink/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-black via-black/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-36 bg-gradient-to-t from-black via-black/70 to-transparent" />
 
       <div className="pointer-events-none relative z-20 mx-auto flex h-full max-w-content flex-col px-6 pb-5 pt-[4.75rem] md:px-8 md:pb-7 md:pt-24">
         <div className="mx-auto max-w-2xl text-center">

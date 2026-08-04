@@ -47,10 +47,7 @@ body:has(main#top) {
 }
 
 .atmosphere {
-  background:
-    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(255, 255, 255, 0.07), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255, 255, 255, 0.03), transparent 50%),
-    #09090b;
+  background: #000000;
 }
 
 .grid-fade {
