@@ -4,8 +4,6 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 type City = {
-  lon: number;
-  lat: number;
   size: number;
   links: number[];
   pos: THREE.Vector3;
@@ -17,18 +15,18 @@ const BASE =
     : "";
 
 const REGIONS = [
-  { lon: 15, lat: 50, spreadLon: 28, spreadLat: 16, count: 90 }, // Europe
-  { lon: 30, lat: 28, spreadLon: 6, spreadLat: 22, count: 28 }, // Nile
-  { lon: 45, lat: 28, spreadLon: 22, spreadLat: 14, count: 35 }, // Middle East
-  { lon: 78, lat: 22, spreadLon: 18, spreadLat: 18, count: 45 }, // India
-  { lon: 115, lat: 32, spreadLon: 24, spreadLat: 18, count: 55 }, // China
-  { lon: 138, lat: 36, spreadLon: 10, spreadLat: 10, count: 22 }, // Japan
-  { lon: -75, lat: 40, spreadLon: 28, spreadLat: 18, count: 55 }, // US East
-  { lon: -120, lat: 38, spreadLon: 14, spreadLat: 16, count: 28 }, // US West
-  { lon: -50, lat: -15, spreadLon: 18, spreadLat: 28, count: 30 }, // Brazil
-  { lon: 135, lat: -28, spreadLon: 22, spreadLat: 14, count: 18 }, // Australia
-  { lon: 28, lat: -28, spreadLon: 12, spreadLat: 10, count: 12 }, // S Africa
-  { lon: 55, lat: 55, spreadLon: 40, spreadLat: 10, count: 25 }, // Russia
+  { lon: 15, lat: 50, spreadLon: 28, spreadLat: 16, count: 90 },
+  { lon: 30, lat: 28, spreadLon: 6, spreadLat: 22, count: 28 },
+  { lon: 45, lat: 28, spreadLon: 22, spreadLat: 14, count: 35 },
+  { lon: 78, lat: 22, spreadLon: 18, spreadLat: 18, count: 45 },
+  { lon: 115, lat: 32, spreadLon: 24, spreadLat: 18, count: 55 },
+  { lon: 138, lat: 36, spreadLon: 10, spreadLat: 10, count: 22 },
+  { lon: -75, lat: 40, spreadLon: 28, spreadLat: 18, count: 55 },
+  { lon: -120, lat: 38, spreadLon: 14, spreadLat: 16, count: 28 },
+  { lon: -50, lat: -15, spreadLon: 18, spreadLat: 28, count: 30 },
+  { lon: 135, lat: -28, spreadLon: 22, spreadLat: 14, count: 18 },
+  { lon: 28, lat: -28, spreadLon: 12, spreadLat: 10, count: 12 },
+  { lon: 55, lat: 55, spreadLon: 40, spreadLat: 10, count: 25 },
 ];
 
 function degToVec(lon: number, lat: number, radius = 1) {
@@ -50,11 +48,9 @@ function seedCities(): City[] {
       const lon = region.lon + Math.cos(a) * region.spreadLon * t * 0.5;
       const lat = region.lat + Math.sin(a) * region.spreadLat * t * 0.5;
       cities.push({
-        lon,
-        lat,
         size: 0.7 + Math.random() * 1.4,
         links: [],
-        pos: degToVec(lon, lat, 1.01),
+        pos: degToVec(lon, lat, 1.012),
       });
     }
   }
@@ -72,6 +68,15 @@ function seedCities(): City[] {
   return cities;
 }
 
+/** Keep the whole globe (with atmosphere) inside the viewport */
+function fitCameraDistance(camera: THREE.PerspectiveCamera, radius = 1.14) {
+  const vFov = (camera.fov * Math.PI) / 180;
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+  const distV = radius / Math.tan(vFov / 2);
+  const distH = radius / Math.tan(hFov / 2);
+  return Math.max(distV, distH) * 1.06;
+}
+
 export function NightPlanet() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -86,36 +91,38 @@ export function NightPlanet() {
 
     const cities = seedCities();
     const glow = new Float32Array(cities.length);
-    const pointer = { x: 0.5, y: 0.55, active: false };
-    const follow = { x: 0.5, y: 0.55 };
+    const pointer = { x: 0.5, y: 0.5, active: false };
+    const follow = { x: 0.5, y: 0.5 };
+    let baseZ = 3.6;
     let raf = 0;
     let disposed = false;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
-    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-    camera.position.z = 3.35;
+    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+    camera.position.set(0, 0, baseZ);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 1);
-    wrap.appendChild(renderer.domElement);
-    renderer.domElement.style.position = "absolute";
-    renderer.domElement.style.inset = "0";
-    renderer.domElement.style.width = "100%";
-    renderer.domElement.style.height = "100%";
+    wrap.insertBefore(renderer.domElement, overlay);
+    Object.assign(renderer.domElement.style, {
+      position: "absolute",
+      inset: "0",
+      width: "100%",
+      height: "100%",
+    });
 
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    // Soft stars
     {
       const starGeo = new THREE.BufferGeometry();
-      const starCount = 900;
+      const starCount = 700;
       const positions = new Float32Array(starCount * 3);
       for (let i = 0; i < starCount; i += 1) {
-        const r = 8 + Math.random() * 20;
+        const r = 10 + Math.random() * 24;
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
         positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
@@ -123,11 +130,18 @@ export function NightPlanet() {
         positions[i * 3 + 2] = r * Math.cos(phi);
       }
       starGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-      const stars = new THREE.Points(
-        starGeo,
-        new THREE.PointsMaterial({ color: 0xffffff, size: 0.03, sizeAttenuation: true, opacity: 0.7, transparent: true })
+      scene.add(
+        new THREE.Points(
+          starGeo,
+          new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.028,
+            sizeAttenuation: true,
+            opacity: 0.65,
+            transparent: true,
+          })
+        )
       );
-      scene.add(stars);
     }
 
     const textureLoader = new THREE.TextureLoader();
@@ -140,16 +154,13 @@ export function NightPlanet() {
     );
     globeGroup.add(earth);
 
-    // Atmosphere glow shell
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.045, 64, 64),
+      new THREE.SphereGeometry(1.05, 64, 64),
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
         side: THREE.BackSide,
-        uniforms: {
-          glowColor: { value: new THREE.Color(0x6eb6ff) },
-        },
+        uniforms: { glowColor: { value: new THREE.Color(0x6eb6ff) } },
         vertexShader: `
           varying vec3 vNormal;
           void main() {
@@ -161,40 +172,28 @@ export function NightPlanet() {
           varying vec3 vNormal;
           uniform vec3 glowColor;
           void main() {
-            float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.2);
-            gl_FragColor = vec4(glowColor, intensity * 0.85);
+            float intensity = pow(0.62 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.4);
+            gl_FragColor = vec4(glowColor, 1.0) * intensity;
           }
         `,
       })
     );
     globeGroup.add(atmosphere);
 
-    // Thin rim ring feel via slightly larger additive shell
-    const rim = new THREE.Mesh(
-      new THREE.SphereGeometry(1.02, 64, 64),
-      new THREE.MeshBasicMaterial({
-        color: 0x89c4ff,
-        transparent: true,
-        opacity: 0.08,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      })
-    );
-    globeGroup.add(rim);
-
-    // Start facing Europe / Africa like the reference
-    globeGroup.rotation.y = 0.15;
-    globeGroup.rotation.x = 0.18;
+    globeGroup.rotation.y = 0.12;
+    globeGroup.rotation.x = 0.12;
 
     const worldPos = new THREE.Vector3();
     const projected = new THREE.Vector3();
 
     const resize = () => {
       const rect = wrap.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
-      camera.aspect = w / Math.max(h, 1);
+      const w = Math.max(rect.width, 1);
+      const h = Math.max(rect.height, 1);
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      baseZ = fitCameraDistance(camera, 1.16);
+      camera.position.z = baseZ;
       renderer.setSize(w, h, false);
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       overlay.width = Math.floor(w * dpr);
@@ -210,23 +209,19 @@ export function NightPlanet() {
       const h = rect.height;
       octx.clearRect(0, 0, w, h);
 
-      follow.x += ((pointer.active ? pointer.x : 0.5) - follow.x) * 0.2;
-      follow.y += ((pointer.active ? pointer.y : 0.55) - follow.y) * 0.2;
-
       const px = follow.x * w;
       const py = follow.y * h;
 
-      type Node = { i: number; sx: number; sy: number; glow: number; size: number; visible: boolean };
+      type Node = { i: number; sx: number; sy: number; glow: number; size: number };
       const nodes: Node[] = [];
       const byIndex = new Map<number, Node>();
 
       for (let i = 0; i < cities.length; i += 1) {
-        worldPos.copy(cities[i].pos);
-        worldPos.applyMatrix4(earth.matrixWorld);
+        worldPos.copy(cities[i].pos).applyMatrix4(earth.matrixWorld);
         const normal = worldPos.clone().normalize();
         const viewDir = camera.position.clone().sub(worldPos).normalize();
-        if (normal.dot(viewDir) < 0.06) {
-          glow[i] *= 0.9;
+        if (normal.dot(viewDir) < 0.08) {
+          glow[i] *= 0.88;
           continue;
         }
 
@@ -234,14 +229,14 @@ export function NightPlanet() {
         if (projected.z > 1) continue;
         const sx = (projected.x * 0.5 + 0.5) * w;
         const sy = (-projected.y * 0.5 + 0.5) * h;
-        if (sx < -20 || sy < -20 || sx > w + 20 || sy > h + 20) continue;
+        if (sx < -30 || sy < -30 || sx > w + 30 || sy > h + 30) continue;
 
         const dist = Math.hypot(px - sx, py - sy);
+        const radiusPx = Math.min(w, h) * 0.42;
         const influence = pointer.active
-          ? Math.max(0, 1 - dist / (Math.min(w, h) * 0.16)) ** 1.15
+          ? Math.max(0, 1 - dist / (radiusPx * 0.38)) ** 1.1
           : 0;
-        const target = influence * 1.2;
-        glow[i] += (target - glow[i]) * 0.24;
+        glow[i] += (influence * 1.25 - glow[i]) * 0.28;
         if (glow[i] < 0.05) continue;
 
         const node = {
@@ -249,43 +244,47 @@ export function NightPlanet() {
           sx,
           sy,
           glow: glow[i],
-          size: cities[i].size * (0.7 + glow[i]),
-          visible: true,
+          size: cities[i].size * (0.75 + glow[i]),
         };
         nodes.push(node);
         byIndex.set(i, node);
       }
 
-      // Thin yellow links
       if (pointer.active) {
         octx.lineCap = "round";
         for (const node of nodes) {
-          if (node.glow < 0.45) continue;
+          if (node.glow < 0.4) continue;
           for (const link of cities[node.i].links) {
             if (link <= node.i) continue;
             const other = byIndex.get(link);
-            if (!other || other.glow < 0.45) continue;
+            if (!other || other.glow < 0.4) continue;
             const strength = Math.min(node.glow, other.glow);
             octx.beginPath();
             octx.moveTo(node.sx, node.sy);
             octx.lineTo(other.sx, other.sy);
-            octx.strokeStyle = `rgba(255, 210, 90, ${0.15 + strength * 0.45})`;
-            octx.lineWidth = 0.5 + strength * 0.9;
+            octx.strokeStyle = `rgba(255, 210, 90, ${0.14 + strength * 0.5})`;
+            octx.lineWidth = 0.5 + strength * 0.95;
             octx.stroke();
           }
         }
       }
 
-      // Cursor-lit yellow sparks
       for (const node of nodes) {
         const a = node.glow;
-        const g = octx.createRadialGradient(node.sx, node.sy, 0, node.sx, node.sy, node.size * 4);
+        const g = octx.createRadialGradient(
+          node.sx,
+          node.sy,
+          0,
+          node.sx,
+          node.sy,
+          node.size * 4.2
+        );
         g.addColorStop(0, `rgba(255, 230, 140, ${a * 0.95})`);
-        g.addColorStop(0.4, `rgba(255, 180, 40, ${a * 0.3})`);
+        g.addColorStop(0.4, `rgba(255, 180, 40, ${a * 0.32})`);
         g.addColorStop(1, "rgba(255, 140, 0, 0)");
         octx.fillStyle = g;
         octx.beginPath();
-        octx.arc(node.sx, node.sy, node.size * 4, 0, Math.PI * 2);
+        octx.arc(node.sx, node.sy, node.size * 4.2, 0, Math.PI * 2);
         octx.fill();
 
         octx.beginPath();
@@ -297,12 +296,24 @@ export function NightPlanet() {
 
     const animate = () => {
       if (disposed) return;
-      // Slow spin + subtle cursor follow tilt
-      globeGroup.rotation.y += 0.00105;
-      const targetX = 0.18 + (follow.y - 0.5) * 0.2;
-      const targetZ = (follow.x - 0.5) * -0.12;
-      globeGroup.rotation.x += (targetX - globeGroup.rotation.x) * 0.06;
-      globeGroup.rotation.z += (targetZ - globeGroup.rotation.z) * 0.06;
+
+      follow.x += ((pointer.active ? pointer.x : 0.5) - follow.x) * 0.14;
+      follow.y += ((pointer.active ? pointer.y : 0.5) - follow.y) * 0.14;
+
+      // Slow planet rotation
+      globeGroup.rotation.y += 0.0011;
+
+      // View/camera moves with cursor, planet stays fully framed
+      const parallaxX = (follow.x - 0.5) * 0.42;
+      const parallaxY = (0.5 - follow.y) * 0.32;
+      camera.position.x += (parallaxX - camera.position.x) * 0.12;
+      camera.position.y += (parallaxY - camera.position.y) * 0.12;
+      camera.position.z = baseZ;
+      camera.lookAt(0, 0, 0);
+
+      // Subtle extra spin from cursor drag direction
+      globeGroup.rotation.x +=
+        ((follow.y - 0.5) * 0.22 - globeGroup.rotation.x) * 0.04;
 
       renderer.render(scene, camera);
       drawOverlay();
@@ -339,8 +350,6 @@ export function NightPlanet() {
       (earth.material as THREE.Material).dispose();
       atmosphere.geometry.dispose();
       (atmosphere.material as THREE.Material).dispose();
-      rim.geometry.dispose();
-      (rim.material as THREE.Material).dispose();
       renderer.dispose();
       if (renderer.domElement.parentElement === wrap) {
         wrap.removeChild(renderer.domElement);
