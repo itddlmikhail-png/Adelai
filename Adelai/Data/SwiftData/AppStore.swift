@@ -20,8 +20,8 @@ final class AppStore: ObservableObject {
     private let planKey = "adelai.subscriptionPlan"
 
     init(seed: Bool = true) {
-        let planRaw = defaults.string(forKey: planKey) ?? SubscriptionPlan.free.rawValue
-        let plan = SubscriptionPlan(rawValue: planRaw) ?? .free
+        let planRaw = defaults.string(forKey: planKey) ?? SubscriptionPlan.pro.rawValue
+        let plan = SubscriptionPlan(rawValue: planRaw) ?? .pro
         self.profile = UserProfile(
             name: "Mikhail",
             email: "itddlmikhail@gmail.com",
