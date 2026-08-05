@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Syne, Manrope } from "next/font/google";
+import { InteractiveStars } from "../components/InteractiveStars";
 import "./globals.css";
 
 const display = Syne({
@@ -33,7 +34,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className={`${display.variable} ${sans.variable}`}>
-      <body className="bg-ink text-white antialiased">{children}</body>
+      <body className="bg-ink text-white antialiased">
+        <InteractiveStars />
+        {children}
+      </body>
     </html>
   );
 }
