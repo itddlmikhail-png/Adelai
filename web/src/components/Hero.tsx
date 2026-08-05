@@ -24,7 +24,7 @@ export function Hero() {
             className="animate-fade-in mt-4 text-[10px] tracking-[0.16em] text-mist/75 uppercase"
             style={{ animationDelay: "160ms" }}
           >
-            Двигай курсор — экран следует, огоньки загораются
+            Двигай курсор — звёзды вспыхивают, огоньки на Земле загораются
           </p>
         </div>
 
