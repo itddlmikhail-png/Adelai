@@ -20,6 +20,8 @@ type ShootingStar = {
   y: number;
   vx: number;
   vy: number;
+  ax: number;
+  ay: number;
   life: number;
   maxLife: number;
   length: number;
@@ -61,23 +63,28 @@ function spawnShootingStar(w: number, h: number): ShootingStar {
   const fromTop = Math.random() > 0.35;
   let x = fromTop ? Math.random() * w * 0.85 : -40;
   let y = fromTop ? -30 : Math.random() * h * 0.4;
-  // Prefer starting in the sky, not on the disk
   for (let i = 0; i < 8 && !outsidePlanet(x, y, w, h); i += 1) {
     x = Math.random() * w * 0.7;
     y = -20 - Math.random() * 40;
   }
-  const speed = 52 + Math.random() * 36;
-  const angle = Math.PI / 5 + Math.random() * (Math.PI / 8);
+  const speed = 78 + Math.random() * 42;
+  const angle = Math.PI / 5.5 + Math.random() * (Math.PI / 9);
   return {
     x,
     y,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
+    ax: Math.cos(angle) * (18 + Math.random() * 14),
+    ay: Math.sin(angle) * (22 + Math.random() * 16) + 8,
     life: 0,
-    maxLife: 0.28 + Math.random() * 0.18,
-    length: 90 + Math.random() * 130,
-    width: 0.55 + Math.random() * 0.55,
+    maxLife: 0.22 + Math.random() * 0.12,
+    length: 110 + Math.random() * 100,
+    width: 0.28 + Math.random() * 0.22,
   };
+}
+
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 function drawShootingStar(
@@ -86,45 +93,67 @@ function drawShootingStar(
   w: number,
   h: number
 ) {
-  const t = s.life / s.maxLife;
-  // Bright start, then steadily fade out
-  const alpha = Math.max(0, Math.pow(1 - t, 1.15));
-  if (alpha <= 0.015) return;
+  const t = Math.min(1, s.life / s.maxLife);
+  // Soft rise, then long elegant fade
+  const fade =
+    t < 0.08
+      ? easeOutCubic(t / 0.08)
+      : Math.pow(1 - (t - 0.08) / 0.92, 1.65);
+  const alpha = Math.max(0, fade);
+  if (alpha <= 0.012) return;
 
   const cover = planetCover(s.x, s.y, w, h);
   const visible = alpha * (1 - cover);
-  if (visible <= 0.015) return;
+  if (visible <= 0.012) return;
 
-  const dx = s.vx;
-  const dy = s.vy;
-  const dist = Math.hypot(dx, dy) || 1;
-  const ux = dx / dist;
-  const uy = dy / dist;
-  const tailLen = s.length * (0.7 + 0.3 * (1 - t));
+  const speed = Math.hypot(s.vx, s.vy) || 1;
+  const ux = s.vx / speed;
+  const uy = s.vy / speed;
+
+  // Trail grows then shrinks as the streak burns out
+  const stretch = t < 0.35 ? 0.55 + t * 1.3 : 1 - (t - 0.35) * 0.55;
+  const tailLen = s.length * Math.max(0.25, stretch);
+  const midX = s.x - ux * tailLen * 0.45;
+  const midY = s.y - uy * tailLen * 0.45;
   const tailX = s.x - ux * tailLen;
   const tailY = s.y - uy * tailLen;
 
-  const grad = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
-  grad.addColorStop(0, "rgba(255,255,255,0)");
-  grad.addColorStop(0.4, `rgba(255,255,255,${0.18 * visible})`);
-  grad.addColorStop(0.8, `rgba(255,255,255,${0.7 * visible})`);
-  grad.addColorStop(1, `rgba(255,255,255,${visible})`);
-
   ctx.save();
   ctx.lineCap = "round";
-  ctx.strokeStyle = grad;
-  ctx.lineWidth = s.width * (0.9 + 0.1 * (1 - t));
-  ctx.shadowColor = `rgba(255,255,255,${0.4 * visible})`;
-  ctx.shadowBlur = 4 + s.width * 2;
+
+  // Soft wide ghost trail
+  const ghost = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
+  ghost.addColorStop(0, "rgba(255,255,255,0)");
+  ghost.addColorStop(0.55, `rgba(255,255,255,${0.06 * visible})`);
+  ghost.addColorStop(1, `rgba(255,255,255,${0.18 * visible})`);
+  ctx.strokeStyle = ghost;
+  ctx.lineWidth = s.width * 2.4;
+  ctx.shadowColor = `rgba(255,255,255,${0.25 * visible})`;
+  ctx.shadowBlur = 6;
   ctx.beginPath();
   ctx.moveTo(tailX, tailY);
-  ctx.lineTo(s.x, s.y);
+  ctx.quadraticCurveTo(midX, midY, s.x, s.y);
   ctx.stroke();
 
-  ctx.shadowBlur = 8;
+  // Needle core
+  const core = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
+  core.addColorStop(0, "rgba(255,255,255,0)");
+  core.addColorStop(0.5, `rgba(255,255,255,${0.22 * visible})`);
+  core.addColorStop(0.85, `rgba(255,255,255,${0.75 * visible})`);
+  core.addColorStop(1, `rgba(255,255,255,${visible})`);
+  ctx.strokeStyle = core;
+  ctx.lineWidth = s.width;
+  ctx.shadowBlur = 3;
+  ctx.beginPath();
+  ctx.moveTo(tailX, tailY);
+  ctx.quadraticCurveTo(midX, midY, s.x, s.y);
+  ctx.stroke();
+
+  // Tiny bright tip
+  ctx.shadowBlur = 5;
   ctx.fillStyle = `rgba(255,255,255,${visible})`;
   ctx.beginPath();
-  ctx.arc(s.x, s.y, s.width * 0.7, 0, Math.PI * 2);
+  ctx.arc(s.x, s.y, s.width * 0.55, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -346,6 +375,8 @@ export function InteractiveStars() {
       for (let i = shooters.length - 1; i >= 0; i -= 1) {
         const s = shooters[i];
         s.life += dt;
+        s.vx += s.ax * dt;
+        s.vy += s.ay * dt;
         s.x += s.vx;
         s.y += s.vy;
         drawShootingStar(ctx, s, w, h);
