@@ -66,7 +66,7 @@ function spawnShootingStar(w: number, h: number): ShootingStar {
     x = Math.random() * w * 0.7;
     y = -20 - Math.random() * 40;
   }
-  const speed = 32 + Math.random() * 28;
+  const speed = 52 + Math.random() * 36;
   const angle = Math.PI / 5 + Math.random() * (Math.PI / 8);
   return {
     x,
@@ -74,9 +74,9 @@ function spawnShootingStar(w: number, h: number): ShootingStar {
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
     life: 0,
-    maxLife: 0.38 + Math.random() * 0.28,
-    length: 70 + Math.random() * 110,
-    width: 1.1 + Math.random() * 1.3,
+    maxLife: 0.28 + Math.random() * 0.18,
+    length: 90 + Math.random() * 130,
+    width: 0.55 + Math.random() * 0.55,
   };
 }
 
@@ -113,18 +113,18 @@ function drawShootingStar(
   ctx.save();
   ctx.lineCap = "round";
   ctx.strokeStyle = grad;
-  ctx.lineWidth = s.width * (0.85 + 0.15 * (1 - t));
-  ctx.shadowColor = `rgba(255,255,255,${0.5 * visible})`;
-  ctx.shadowBlur = 8 + s.width * 3;
+  ctx.lineWidth = s.width * (0.9 + 0.1 * (1 - t));
+  ctx.shadowColor = `rgba(255,255,255,${0.4 * visible})`;
+  ctx.shadowBlur = 4 + s.width * 2;
   ctx.beginPath();
   ctx.moveTo(tailX, tailY);
   ctx.lineTo(s.x, s.y);
   ctx.stroke();
 
-  ctx.shadowBlur = 14;
+  ctx.shadowBlur = 8;
   ctx.fillStyle = `rgba(255,255,255,${visible})`;
   ctx.beginPath();
-  ctx.arc(s.x, s.y, s.width * 0.85, 0, Math.PI * 2);
+  ctx.arc(s.x, s.y, s.width * 0.7, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
