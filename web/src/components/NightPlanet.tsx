@@ -129,7 +129,7 @@ export function NightPlanet() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.0;
     renderer.setClearColor(0x000000, 1);
     wrap.insertBefore(renderer.domElement, overlay);
     Object.assign(renderer.domElement.style, {
@@ -170,71 +170,72 @@ export function NightPlanet() {
     }
 
     const textureLoader = new THREE.TextureLoader();
-    const earthTex = textureLoader.load(`${BASE}/earth-night.jpg`);
+    const earthTex = textureLoader.load(`${BASE}/earth-day.jpg`);
     earthTex.colorSpace = THREE.SRGBColorSpace;
     earthTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     earthTex.minFilter = THREE.LinearMipmapLinearFilter;
     earthTex.magFilter = THREE.LinearFilter;
     earthTex.generateMipmaps = true;
 
+    // Soft key light from the sun — natural day Earth shading
+    const sunDir = new THREE.Vector3(1.15, 0.35, 0.85).normalize();
+
     const earth = new THREE.Mesh(
       new THREE.SphereGeometry(1, 256, 256),
       new THREE.ShaderMaterial({
         uniforms: {
           map: { value: earthTex },
-          saturation: { value: 1.55 },
-          contrast: { value: 1.22 },
-          brightness: { value: 1.12 },
-          warmth: { value: 0.08 },
+          sunDirection: { value: sunDir },
         },
         vertexShader: `
           varying vec2 vUv;
-          varying vec3 vNormal;
+          varying vec3 vNormalW;
+          varying vec3 vPosW;
           void main() {
             vUv = uv;
-            vNormal = normalize(normalMatrix * normal);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            vec4 world = modelMatrix * vec4(position, 1.0);
+            vPosW = world.xyz;
+            vNormalW = normalize(mat3(modelMatrix) * normal);
+            gl_Position = projectionMatrix * viewMatrix * world;
           }
         `,
         fragmentShader: `
           uniform sampler2D map;
-          uniform float saturation;
-          uniform float contrast;
-          uniform float brightness;
-          uniform float warmth;
+          uniform vec3 sunDirection;
           varying vec2 vUv;
-          varying vec3 vNormal;
-
-          vec3 applySaturation(vec3 color, float amount) {
-            float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
-            return mix(vec3(luma), color, amount);
-          }
+          varying vec3 vNormalW;
+          varying vec3 vPosW;
 
           void main() {
-            vec4 tex = texture2D(map, vUv);
-            vec3 color = tex.rgb * brightness;
+            vec3 albedo = texture2D(map, vUv).rgb;
 
-            // Lift shadows slightly, keep oceans deep
-            color = pow(max(color, 0.0), vec3(0.92));
-            color = (color - 0.5) * contrast + 0.5;
+            // Keep NASA true-color look — light natural lift only
+            albedo = pow(max(albedo, 0.0), vec3(0.96));
 
-            // Richer amber city lights + cooler ocean tones
-            float lum = dot(color, vec3(0.299, 0.587, 0.114));
-            color.r += warmth * (1.0 - lum) * 0.15;
-            color.g += warmth * lum * 0.35;
-            color.b += (1.0 - warmth) * (1.0 - lum) * 0.22;
+            vec3 N = normalize(vNormalW);
+            float ndl = max(dot(N, normalize(sunDirection)), 0.0);
 
-            color = applySaturation(color, saturation);
-            color = clamp(color, 0.0, 1.0);
+            // Soft daylight wrap — no harsh night side
+            float diffuse = mix(0.42, 1.0, ndl);
+            float hemi = 0.55 + 0.45 * N.y;
 
-            gl_FragColor = vec4(color, tex.a);
+            vec3 color = albedo * diffuse * (0.88 + 0.12 * hemi);
+
+            // Subtle specular sheen on oceans
+            vec3 V = normalize(cameraPosition - vPosW);
+            vec3 H = normalize(normalize(sunDirection) + V);
+            float ocean = smoothstep(0.18, 0.42, albedo.b - albedo.r);
+            float spec = pow(max(dot(N, H), 0.0), 48.0) * ocean * 0.28;
+            color += vec3(0.85, 0.92, 1.0) * spec;
+
+            gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
           }
         `,
       })
     );
     globeGroup.add(earth);
 
-    // Soft outer atmosphere bloom
+    // Soft outer atmosphere bloom — sky blue
     const atmosphere = new THREE.Mesh(
       new THREE.SphereGeometry(1.065, 128, 128),
       new THREE.ShaderMaterial({
@@ -242,7 +243,7 @@ export function NightPlanet() {
         depthWrite: false,
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending,
-        uniforms: { glowColor: { value: new THREE.Color(0x4db8ff) } },
+        uniforms: { glowColor: { value: new THREE.Color(0x5eb0ff) } },
         vertexShader: `
           varying vec3 vNormal;
           void main() {
@@ -254,8 +255,8 @@ export function NightPlanet() {
           varying vec3 vNormal;
           uniform vec3 glowColor;
           void main() {
-            float intensity = pow(0.58 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
-            gl_FragColor = vec4(glowColor, 1.0) * intensity * 1.45;
+            float intensity = pow(0.55 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.4);
+            gl_FragColor = vec4(glowColor, 1.0) * intensity * 1.25;
           }
         `,
       })
@@ -270,7 +271,7 @@ export function NightPlanet() {
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         uniforms: {
-          rimColor: { value: new THREE.Color(0x6ecfff) },
+          rimColor: { value: new THREE.Color(0x9fd4ff) },
         },
         vertexShader: `
           varying vec3 vNormal;
