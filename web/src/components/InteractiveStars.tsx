@@ -15,6 +15,76 @@ type Star = {
   drift: number;
 };
 
+type ShootingStar = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  length: number;
+  width: number;
+};
+
+function spawnShootingStar(w: number, h: number): ShootingStar {
+  const fromTop = Math.random() > 0.35;
+  const x = fromTop ? Math.random() * w * 0.85 : -40;
+  const y = fromTop ? -30 : Math.random() * h * 0.45;
+  const speed = 14 + Math.random() * 18;
+  const angle = Math.PI / 5 + Math.random() * (Math.PI / 8); // steep diagonal down-right
+  return {
+    x,
+    y,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    life: 0,
+    maxLife: 0.45 + Math.random() * 0.35,
+    length: 55 + Math.random() * 90,
+    width: 1.2 + Math.random() * 1.4,
+  };
+}
+
+function drawShootingStar(ctx: CanvasRenderingContext2D, s: ShootingStar) {
+  const t = s.life / s.maxLife;
+  // Fade in quick, hold, fade out
+  const alpha =
+    t < 0.12 ? t / 0.12 : t > 0.65 ? Math.max(0, 1 - (t - 0.65) / 0.35) : 1;
+  if (alpha <= 0.01) return;
+
+  const dx = s.vx;
+  const dy = s.vy;
+  const dist = Math.hypot(dx, dy) || 1;
+  const ux = dx / dist;
+  const uy = dy / dist;
+  const tailX = s.x - ux * s.length;
+  const tailY = s.y - uy * s.length;
+
+  const grad = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
+  grad.addColorStop(0, "rgba(255,255,255,0)");
+  grad.addColorStop(0.45, `rgba(255,255,255,${0.25 * alpha})`);
+  grad.addColorStop(0.85, `rgba(255,255,255,${0.75 * alpha})`);
+  grad.addColorStop(1, `rgba(255,255,255,${alpha})`);
+
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = s.width;
+  ctx.shadowColor = `rgba(255,255,255,${0.55 * alpha})`;
+  ctx.shadowBlur = 8 + s.width * 3;
+  ctx.beginPath();
+  ctx.moveTo(tailX, tailY);
+  ctx.lineTo(s.x, s.y);
+  ctx.stroke();
+
+  // Bright head
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, s.width * 0.85, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function seedStars(w: number, h: number): Star[] {
   const area = w * h;
   const count = Math.min(520, Math.max(220, Math.floor(area / 5500)));
@@ -174,11 +244,14 @@ export function InteractiveStars() {
 
     let stars: Star[] = [];
     let glow: Float32Array = new Float32Array(0);
+    let shooters: ShootingStar[] = [];
+    let nextShot = 1.2 + Math.random() * 2.5;
     let w = 0;
     let h = 0;
     let raf = 0;
     let time = 0;
     const pointer = { x: -9999, y: -9999, active: false };
+    const dt = 0.016;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -194,7 +267,7 @@ export function InteractiveStars() {
     };
 
     const draw = () => {
-      time += 0.016;
+      time += dt;
       ctx.clearRect(0, 0, w, h);
 
       const radius = Math.min(w, h) * 0.16;
@@ -208,6 +281,27 @@ export function InteractiveStars() {
         }
         glow[i] += (target - glow[i]) * 0.22;
         drawStar(ctx, star, glow[i], time);
+      }
+
+      nextShot -= dt;
+      if (nextShot <= 0 && shooters.length < 2) {
+        shooters.push(spawnShootingStar(w, h));
+        nextShot = 2.2 + Math.random() * 4.5;
+      }
+
+      for (let i = shooters.length - 1; i >= 0; i -= 1) {
+        const s = shooters[i];
+        s.life += dt;
+        s.x += s.vx;
+        s.y += s.vy;
+        drawShootingStar(ctx, s);
+        if (
+          s.life >= s.maxLife ||
+          s.x > w + 80 ||
+          s.y > h + 80
+        ) {
+          shooters.splice(i, 1);
+        }
       }
 
       raf = requestAnimationFrame(draw);
