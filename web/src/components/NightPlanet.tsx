@@ -314,7 +314,7 @@ export function NightPlanet() {
       viewH = Math.max(rect.height, 1);
       camera.aspect = viewW / viewH;
       camera.updateProjectionMatrix();
-      baseZ = fitCameraDistance(camera, 1.32);
+      baseZ = fitCameraDistance(camera, 1.45);
       camera.position.z = baseZ;
       renderer.setSize(viewW, viewH, false);
       const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -434,26 +434,35 @@ export function NightPlanet() {
       if (dt < 0) dt = 0;
       elapsed += dt;
 
-      follow.x = damp(follow.x, pointer.active ? pointer.x : 0.5, 11, dt);
-      follow.y = damp(follow.y, pointer.active ? pointer.y : 0.5, 11, dt);
+      // Soft cursor tracking — inertia for a cinematic feel
+      const aimX = pointer.active ? pointer.x : 0.5;
+      const aimY = pointer.active ? pointer.y : 0.5;
+      follow.x = damp(follow.x, aimX, 4.2, dt);
+      follow.y = damp(follow.y, aimY, 4.2, dt);
 
-      // Smooth constant-speed rotation (rad/sec)
-      spinY += 0.065 * dt;
+      const nx = follow.x - 0.5;
+      const ny = follow.y - 0.5;
+      // Ease response toward edges for a richer arc
+      const sx = Math.sign(nx) * Math.pow(Math.abs(nx) * 2, 1.15) * 0.5;
+      const sy = Math.sign(ny) * Math.pow(Math.abs(ny) * 2, 1.15) * 0.5;
 
-      // Stronger camera follow with cursor
-      const parallaxX = (follow.x - 0.5) * 0.95;
-      const parallaxY = (0.5 - follow.y) * 0.72;
-      camera.position.x = damp(camera.position.x, parallaxX, 10, dt);
-      camera.position.y = damp(camera.position.y, parallaxY, 10, dt);
-      camera.position.z = baseZ;
+      spinY += 0.055 * dt;
+
+      // Strong camera orbit with the cursor
+      const parallaxX = sx * 1.55;
+      const parallaxY = -sy * 1.15;
+      camera.position.x = damp(camera.position.x, parallaxX, 3.8, dt);
+      camera.position.y = damp(camera.position.y, parallaxY, 3.8, dt);
+      camera.position.z = damp(camera.position.z, baseZ, 3.8, dt);
       camera.lookAt(0, 0, 0);
 
-      // Bigger planet tilt toward cursor
-      const tiltTarget = (follow.y - 0.5) * 0.62;
-      globeGroup.rotation.x = damp(globeGroup.rotation.x, tiltTarget, 5.5, dt);
-      const yawTarget = (follow.x - 0.5) * 0.78;
-      yawFollow = damp(yawFollow, yawTarget, 5.5, dt);
+      // Deep planet tilt — layered, slower than camera for depth
+      const tiltTarget = sy * 1.05;
+      globeGroup.rotation.x = damp(globeGroup.rotation.x, tiltTarget, 3.2, dt);
+      const yawTarget = sx * 1.25;
+      yawFollow = damp(yawFollow, yawTarget, 3.2, dt);
       globeGroup.rotation.y = spinY + yawFollow;
+      globeGroup.rotation.z = damp(globeGroup.rotation.z, -sx * 0.28, 2.8, dt);
 
       renderer.render(scene, camera);
       drawOverlay(dt);
