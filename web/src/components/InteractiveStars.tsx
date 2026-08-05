@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-type StarKind = "dot" | "spark" | "diamond" | "cross" | "flare" | "plus";
+type StarKind = "dot" | "spark" | "diamond" | "glint" | "flare" | "soft";
 
 type Star = {
   x: number;
@@ -12,25 +12,16 @@ type Star = {
   base: number;
   twinkle: number;
   phase: number;
-  hue: number;
   drift: number;
 };
 
 function seedStars(w: number, h: number): Star[] {
   const area = w * h;
   const count = Math.min(260, Math.max(110, Math.floor(area / 12000)));
-  const kinds: StarKind[] = ["dot", "dot", "spark", "diamond", "cross", "flare", "plus"];
+  const kinds: StarKind[] = ["dot", "dot", "spark", "diamond", "glint", "flare", "soft"];
   const stars: Star[] = [];
 
   for (let i = 0; i < count; i += 1) {
-    const roll = Math.random();
-    const hue =
-      roll > 0.88
-        ? 200 + Math.random() * 40
-        : roll > 0.72
-          ? 35 + Math.random() * 25
-          : 50 + Math.random() * 10;
-
     stars.push({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -39,7 +30,6 @@ function seedStars(w: number, h: number): Star[] {
       base: 0.22 + Math.random() * 0.42,
       twinkle: 0.35 + Math.random() * 0.95,
       phase: Math.random() * Math.PI * 2,
-      hue,
       drift: (Math.random() - 0.5) * 0.12,
     });
   }
@@ -55,20 +45,9 @@ function drawStar(
   const pulse = 0.72 + Math.sin(time * star.twinkle + star.phase) * 0.28;
   const alpha = Math.min(1, (star.base + glow * 1.05) * pulse);
   const size = star.r * (1 + glow * 2.2);
-  const warm = star.hue < 100;
-  const cool = star.hue > 180;
 
-  const core = warm
-    ? `rgba(255, 248, 220, ${alpha})`
-    : cool
-      ? `rgba(225, 238, 255, ${alpha})`
-      : `rgba(255, 255, 255, ${alpha})`;
-
-  const bloom = warm
-    ? `rgba(255, 200, 110, ${alpha * 0.55})`
-    : cool
-      ? `rgba(150, 195, 255, ${alpha * 0.5})`
-      : `rgba(255, 255, 255, ${alpha * 0.4})`;
+  const core = `rgba(255, 255, 255, ${alpha})`;
+  const bloom = `rgba(255, 255, 255, ${alpha * 0.42})`;
 
   const ox = star.x + Math.sin(time * 0.15 + star.phase) * star.drift * 8;
   const oy = star.y + Math.cos(time * 0.12 + star.phase) * star.drift * 6;
@@ -77,14 +56,7 @@ function drawStar(
     const halo = size * (5.5 + glow * 4);
     const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, halo);
     g.addColorStop(0, bloom);
-    g.addColorStop(
-      0.35,
-      warm
-        ? `rgba(255, 180, 70, ${alpha * 0.18 * glow})`
-        : cool
-          ? `rgba(130, 175, 255, ${alpha * 0.16 * glow})`
-          : `rgba(255, 255, 255, ${alpha * 0.14 * glow})`
-    );
+    g.addColorStop(0.35, `rgba(255, 255, 255, ${alpha * 0.14 * glow})`);
     g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -96,11 +68,7 @@ function drawStar(
   ctx.translate(ox, oy);
   ctx.fillStyle = core;
   ctx.strokeStyle = core;
-  ctx.shadowColor = warm
-    ? `rgba(255, 210, 120, ${0.35 + glow * 0.55})`
-    : cool
-      ? `rgba(160, 200, 255, ${0.3 + glow * 0.5})`
-      : `rgba(255, 255, 255, ${0.25 + glow * 0.45})`;
+  ctx.shadowColor = `rgba(255, 255, 255, ${0.28 + glow * 0.5})`;
   ctx.shadowBlur = 2 + glow * 10;
 
   switch (star.kind) {
@@ -111,70 +79,83 @@ function drawStar(
       break;
     }
     case "spark": {
-      ctx.rotate(star.phase * 0.2 + time * 0.08);
-      ctx.beginPath();
+      // Soft 4-point twinkle — short tapered rays, not a hard cross
+      ctx.rotate(star.phase * 0.2 + time * 0.06);
+      ctx.lineCap = "round";
       for (let i = 0; i < 4; i += 1) {
         const a = (i * Math.PI) / 2;
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(a) * size * 2.4, Math.sin(a) * size * 2.4);
-      }
-      ctx.lineWidth = Math.max(0.55, size * 0.32);
-      ctx.lineCap = "round";
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.32, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-    case "diamond": {
-      ctx.rotate(Math.PI / 4 + star.phase * 0.05);
-      ctx.beginPath();
-      ctx.rect(-size * 0.42, -size * 0.42, size * 0.84, size * 0.84);
-      ctx.fill();
-      break;
-    }
-    case "cross": {
-      ctx.rotate(star.phase * 0.15);
-      ctx.lineWidth = Math.max(0.65, size * 0.38);
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(-size * 1.7, 0);
-      ctx.lineTo(size * 1.7, 0);
-      ctx.moveTo(0, -size * 1.7);
-      ctx.lineTo(0, size * 1.7);
-      ctx.stroke();
-      break;
-    }
-    case "flare": {
-      ctx.rotate(star.phase * 0.1 + time * 0.05);
-      ctx.beginPath();
-      for (let i = 0; i < 6; i += 1) {
-        const a = (i * Math.PI) / 3;
-        const len = i % 2 === 0 ? size * 2.6 : size * 1.15;
-        ctx.moveTo(0, 0);
+        const len = size * (1.1 + (i % 2) * 0.55);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * size * 0.15, Math.sin(a) * size * 0.15);
         ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
+        ctx.lineWidth = Math.max(0.4, size * (0.22 - (i % 2) * 0.04));
+        ctx.globalAlpha = alpha * (0.55 + (i % 2) * 0.25);
+        ctx.stroke();
       }
-      ctx.lineWidth = Math.max(0.5, size * 0.28);
-      ctx.lineCap = "round";
-      ctx.stroke();
+      ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
       ctx.fill();
       break;
     }
-    case "plus": {
-      ctx.rotate(Math.PI / 4);
-      ctx.lineWidth = Math.max(0.55, size * 0.3);
-      ctx.lineCap = "round";
-      const arm = size * 1.35;
+    case "diamond": {
+      ctx.rotate(Math.PI / 4 + star.phase * 0.05);
       ctx.beginPath();
-      ctx.moveTo(-arm, 0);
-      ctx.lineTo(arm, 0);
-      ctx.moveTo(0, -arm);
-      ctx.lineTo(0, arm);
+      ctx.rect(-size * 0.38, -size * 0.38, size * 0.76, size * 0.76);
+      ctx.fill();
+      break;
+    }
+    case "glint": {
+      // Tiny asymmetric shimmer — barely suggests rays
+      ctx.rotate(star.phase * 0.35);
+      ctx.lineCap = "round";
+      ctx.lineWidth = Math.max(0.4, size * 0.22);
+      const long = size * 1.25;
+      const short = size * 0.55;
+      ctx.globalAlpha = alpha * 0.7;
+      ctx.beginPath();
+      ctx.moveTo(-long, 0);
+      ctx.lineTo(long * 0.65, 0);
       ctx.stroke();
+      ctx.globalAlpha = alpha * 0.45;
+      ctx.beginPath();
+      ctx.moveTo(0, -short);
+      ctx.lineTo(0, short * 0.8);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case "flare": {
+      ctx.rotate(star.phase * 0.1 + time * 0.05);
+      ctx.lineCap = "round";
+      for (let i = 0; i < 6; i += 1) {
+        const a = (i * Math.PI) / 3;
+        const len = i % 2 === 0 ? size * 2.2 : size * 0.85;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * size * 0.12, Math.sin(a) * size * 0.12);
+        ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
+        ctx.lineWidth = Math.max(0.35, size * (i % 2 === 0 ? 0.2 : 0.14));
+        ctx.globalAlpha = alpha * (i % 2 === 0 ? 0.75 : 0.4);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.26, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case "soft": {
+      // Soft oval speck — no hard geometry
+      ctx.rotate(star.phase * 0.4);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 0.7, size * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
       break;
     }
   }
