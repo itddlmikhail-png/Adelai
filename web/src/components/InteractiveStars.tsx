@@ -26,59 +26,103 @@ type ShootingStar = {
   width: number;
 };
 
+/** Approximate on-screen Earth disk (matches NightPlanet framing). */
+function planetDisk(w: number, h: number) {
+  return {
+    cx: w * 0.5,
+    cy: h * 0.52,
+    r: Math.min(w, h) * 0.44,
+  };
+}
+
+function outsidePlanet(x: number, y: number, w: number, h: number) {
+  const { cx, cy, r } = planetDisk(w, h);
+  const dx = (x - cx) / r;
+  const dy = (y - cy) / r;
+  return dx * dx + dy * dy > 1.02;
+}
+
+function planetCover(x: number, y: number, w: number, h: number) {
+  // 1 = fully on planet (hide), 0 = clear sky
+  if (!shouldMaskPlanet()) return 0;
+  const { cx, cy, r } = planetDisk(w, h);
+  const d = Math.hypot(x - cx, y - cy) / r;
+  if (d >= 1.06) return 0;
+  if (d <= 0.96) return 1;
+  return 1 - (d - 0.96) / 0.1;
+}
+
+function shouldMaskPlanet() {
+  if (typeof window === "undefined") return true;
+  return !window.location.pathname.includes("/plan");
+}
+
 function spawnShootingStar(w: number, h: number): ShootingStar {
   const fromTop = Math.random() > 0.35;
-  const x = fromTop ? Math.random() * w * 0.85 : -40;
-  const y = fromTop ? -30 : Math.random() * h * 0.45;
-  const speed = 14 + Math.random() * 18;
-  const angle = Math.PI / 5 + Math.random() * (Math.PI / 8); // steep diagonal down-right
+  let x = fromTop ? Math.random() * w * 0.85 : -40;
+  let y = fromTop ? -30 : Math.random() * h * 0.4;
+  // Prefer starting in the sky, not on the disk
+  for (let i = 0; i < 8 && !outsidePlanet(x, y, w, h); i += 1) {
+    x = Math.random() * w * 0.7;
+    y = -20 - Math.random() * 40;
+  }
+  const speed = 32 + Math.random() * 28;
+  const angle = Math.PI / 5 + Math.random() * (Math.PI / 8);
   return {
     x,
     y,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
     life: 0,
-    maxLife: 0.45 + Math.random() * 0.35,
-    length: 55 + Math.random() * 90,
-    width: 1.2 + Math.random() * 1.4,
+    maxLife: 0.38 + Math.random() * 0.28,
+    length: 70 + Math.random() * 110,
+    width: 1.1 + Math.random() * 1.3,
   };
 }
 
-function drawShootingStar(ctx: CanvasRenderingContext2D, s: ShootingStar) {
+function drawShootingStar(
+  ctx: CanvasRenderingContext2D,
+  s: ShootingStar,
+  w: number,
+  h: number
+) {
   const t = s.life / s.maxLife;
-  // Fade in quick, hold, fade out
-  const alpha =
-    t < 0.12 ? t / 0.12 : t > 0.65 ? Math.max(0, 1 - (t - 0.65) / 0.35) : 1;
-  if (alpha <= 0.01) return;
+  // Bright start, then steadily fade out
+  const alpha = Math.max(0, Math.pow(1 - t, 1.15));
+  if (alpha <= 0.015) return;
+
+  const cover = planetCover(s.x, s.y, w, h);
+  const visible = alpha * (1 - cover);
+  if (visible <= 0.015) return;
 
   const dx = s.vx;
   const dy = s.vy;
   const dist = Math.hypot(dx, dy) || 1;
   const ux = dx / dist;
   const uy = dy / dist;
-  const tailX = s.x - ux * s.length;
-  const tailY = s.y - uy * s.length;
+  const tailLen = s.length * (0.7 + 0.3 * (1 - t));
+  const tailX = s.x - ux * tailLen;
+  const tailY = s.y - uy * tailLen;
 
   const grad = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
   grad.addColorStop(0, "rgba(255,255,255,0)");
-  grad.addColorStop(0.45, `rgba(255,255,255,${0.25 * alpha})`);
-  grad.addColorStop(0.85, `rgba(255,255,255,${0.75 * alpha})`);
-  grad.addColorStop(1, `rgba(255,255,255,${alpha})`);
+  grad.addColorStop(0.4, `rgba(255,255,255,${0.18 * visible})`);
+  grad.addColorStop(0.8, `rgba(255,255,255,${0.7 * visible})`);
+  grad.addColorStop(1, `rgba(255,255,255,${visible})`);
 
   ctx.save();
   ctx.lineCap = "round";
   ctx.strokeStyle = grad;
-  ctx.lineWidth = s.width;
-  ctx.shadowColor = `rgba(255,255,255,${0.55 * alpha})`;
+  ctx.lineWidth = s.width * (0.85 + 0.15 * (1 - t));
+  ctx.shadowColor = `rgba(255,255,255,${0.5 * visible})`;
   ctx.shadowBlur = 8 + s.width * 3;
   ctx.beginPath();
   ctx.moveTo(tailX, tailY);
   ctx.lineTo(s.x, s.y);
   ctx.stroke();
 
-  // Bright head
   ctx.shadowBlur = 14;
-  ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  ctx.fillStyle = `rgba(255,255,255,${visible})`;
   ctx.beginPath();
   ctx.arc(s.x, s.y, s.width * 0.85, 0, Math.PI * 2);
   ctx.fill();
@@ -90,11 +134,17 @@ function seedStars(w: number, h: number): Star[] {
   const count = Math.min(520, Math.max(220, Math.floor(area / 5500)));
   const kinds: StarKind[] = ["dot", "dot", "dot", "spark", "diamond", "glint", "flare", "soft"];
   const stars: Star[] = [];
+  const mask = shouldMaskPlanet();
 
-  for (let i = 0; i < count; i += 1) {
+  let attempts = 0;
+  while (stars.length < count && attempts < count * 8) {
+    attempts += 1;
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    if (mask && !outsidePlanet(x, y, w, h)) continue;
     stars.push({
-      x: Math.random() * w,
-      y: Math.random() * h,
+      x,
+      y,
       r: 0.45 + Math.random() * 1.65,
       kind: kinds[Math.floor(Math.random() * kinds.length)],
       base: 0.22 + Math.random() * 0.42,
@@ -110,17 +160,21 @@ function drawStar(
   ctx: CanvasRenderingContext2D,
   star: Star,
   glow: number,
-  time: number
+  time: number,
+  w: number,
+  h: number
 ) {
+  const ox = star.x + Math.sin(time * 0.15 + star.phase) * star.drift * 8;
+  const oy = star.y + Math.cos(time * 0.12 + star.phase) * star.drift * 6;
+  const cover = planetCover(ox, oy, w, h);
+  if (cover >= 0.98) return;
+
   const pulse = 0.72 + Math.sin(time * star.twinkle + star.phase) * 0.28;
-  const alpha = Math.min(1, (star.base + glow * 1.05) * pulse);
+  const alpha = Math.min(1, (star.base + glow * 1.05) * pulse) * (1 - cover);
   const size = star.r * (1 + glow * 2.2);
 
   const core = `rgba(255, 255, 255, ${alpha})`;
   const bloom = `rgba(255, 255, 255, ${alpha * 0.42})`;
-
-  const ox = star.x + Math.sin(time * 0.15 + star.phase) * star.drift * 8;
-  const oy = star.y + Math.cos(time * 0.12 + star.phase) * star.drift * 6;
 
   if (glow > 0.04) {
     const halo = size * (5.5 + glow * 4);
@@ -280,7 +334,7 @@ export function InteractiveStars() {
           target = Math.max(0, 1 - d / radius) ** 1.2;
         }
         glow[i] += (target - glow[i]) * 0.22;
-        drawStar(ctx, star, glow[i], time);
+        drawStar(ctx, star, glow[i], time, w, h);
       }
 
       nextShot -= dt;
@@ -294,7 +348,7 @@ export function InteractiveStars() {
         s.life += dt;
         s.x += s.vx;
         s.y += s.vy;
-        drawShootingStar(ctx, s);
+        drawShootingStar(ctx, s, w, h);
         if (
           s.life >= s.maxLife ||
           s.x > w + 80 ||
