@@ -13,6 +13,8 @@ type Star = {
   twinkle: number;
   phase: number;
   drift: number;
+  delay: number;
+  appear: number;
 };
 
 type ShootingStar = {
@@ -27,6 +29,18 @@ type ShootingStar = {
   length: number;
   width: number;
 };
+
+function damp(current: number, target: number, lambda: number, dt: number) {
+  return current + (target - current) * (1 - Math.exp(-lambda * dt));
+}
+
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function easeInOut(t: number) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
 
 /** Approximate on-screen Earth disk (matches NightPlanet framing). */
 function planetDisk(w: number, h: number) {
@@ -45,7 +59,6 @@ function outsidePlanet(x: number, y: number, w: number, h: number) {
 }
 
 function planetCover(x: number, y: number, w: number, h: number) {
-  // 1 = fully on planet (hide), 0 = clear sky
   if (!shouldMaskPlanet()) return 0;
   const { cx, cy, r } = planetDisk(w, h);
   const d = Math.hypot(x - cx, y - cy) / r;
@@ -67,24 +80,21 @@ function spawnShootingStar(w: number, h: number): ShootingStar {
     x = Math.random() * w * 0.7;
     y = -20 - Math.random() * 40;
   }
-  const speed = 78 + Math.random() * 42;
+  // Velocities in px/sec for frame-rate independence
+  const speed = 1900 + Math.random() * 900;
   const angle = Math.PI / 5.5 + Math.random() * (Math.PI / 9);
   return {
     x,
     y,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-    ax: Math.cos(angle) * (18 + Math.random() * 14),
-    ay: Math.sin(angle) * (22 + Math.random() * 16) + 8,
+    ax: Math.cos(angle) * (420 + Math.random() * 280),
+    ay: Math.sin(angle) * (520 + Math.random() * 320) + 180,
     life: 0,
-    maxLife: 0.22 + Math.random() * 0.12,
+    maxLife: 0.32 + Math.random() * 0.16,
     length: 110 + Math.random() * 100,
     width: 0.28 + Math.random() * 0.22,
   };
-}
-
-function easeOutCubic(t: number) {
-  return 1 - Math.pow(1 - t, 3);
 }
 
 function drawShootingStar(
@@ -94,11 +104,10 @@ function drawShootingStar(
   h: number
 ) {
   const t = Math.min(1, s.life / s.maxLife);
-  // Soft rise, then long elegant fade
   const fade =
-    t < 0.08
-      ? easeOutCubic(t / 0.08)
-      : Math.pow(1 - (t - 0.08) / 0.92, 1.65);
+    t < 0.1
+      ? easeOutCubic(t / 0.1)
+      : Math.pow(1 - (t - 0.1) / 0.9, 1.8);
   const alpha = Math.max(0, fade);
   if (alpha <= 0.012) return;
 
@@ -110,9 +119,8 @@ function drawShootingStar(
   const ux = s.vx / speed;
   const uy = s.vy / speed;
 
-  // Trail grows then shrinks as the streak burns out
-  const stretch = t < 0.35 ? 0.55 + t * 1.3 : 1 - (t - 0.35) * 0.55;
-  const tailLen = s.length * Math.max(0.25, stretch);
+  const stretch = t < 0.3 ? 0.5 + easeOutCubic(t / 0.3) * 0.7 : 1.2 - (t - 0.3) * 0.9;
+  const tailLen = s.length * Math.max(0.2, stretch);
   const midX = s.x - ux * tailLen * 0.45;
   const midY = s.y - uy * tailLen * 0.45;
   const tailX = s.x - ux * tailLen;
@@ -121,7 +129,6 @@ function drawShootingStar(
   ctx.save();
   ctx.lineCap = "round";
 
-  // Soft wide ghost trail
   const ghost = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
   ghost.addColorStop(0, "rgba(255,255,255,0)");
   ghost.addColorStop(0.55, `rgba(255,255,255,${0.06 * visible})`);
@@ -135,7 +142,6 @@ function drawShootingStar(
   ctx.quadraticCurveTo(midX, midY, s.x, s.y);
   ctx.stroke();
 
-  // Needle core
   const core = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
   core.addColorStop(0, "rgba(255,255,255,0)");
   core.addColorStop(0.5, `rgba(255,255,255,${0.22 * visible})`);
@@ -149,7 +155,6 @@ function drawShootingStar(
   ctx.quadraticCurveTo(midX, midY, s.x, s.y);
   ctx.stroke();
 
-  // Tiny bright tip
   ctx.shadowBlur = 5;
   ctx.fillStyle = `rgba(255,255,255,${visible})`;
   ctx.beginPath();
@@ -180,6 +185,8 @@ function seedStars(w: number, h: number): Star[] {
       twinkle: 0.35 + Math.random() * 0.95,
       phase: Math.random() * Math.PI * 2,
       drift: (Math.random() - 0.5) * 0.12,
+      delay: Math.random() * 1.8,
+      appear: 0,
     });
   }
   return stars;
@@ -193,14 +200,17 @@ function drawStar(
   w: number,
   h: number
 ) {
+  if (star.appear <= 0.01) return;
+
   const ox = star.x + Math.sin(time * 0.15 + star.phase) * star.drift * 8;
   const oy = star.y + Math.cos(time * 0.12 + star.phase) * star.drift * 6;
   const cover = planetCover(ox, oy, w, h);
   if (cover >= 0.98) return;
 
   const pulse = 0.72 + Math.sin(time * star.twinkle + star.phase) * 0.28;
-  const alpha = Math.min(1, (star.base + glow * 1.05) * pulse) * (1 - cover);
-  const size = star.r * (1 + glow * 2.2);
+  const alpha =
+    Math.min(1, (star.base + glow * 1.05) * pulse) * (1 - cover) * star.appear;
+  const size = star.r * (1 + glow * 2.2) * (0.55 + 0.45 * easeOutCubic(star.appear));
 
   const core = `rgba(255, 255, 255, ${alpha})`;
   const bloom = `rgba(255, 255, 255, ${alpha * 0.42})`;
@@ -232,7 +242,6 @@ function drawStar(
       break;
     }
     case "spark": {
-      // Soft 4-point twinkle — short tapered rays, not a hard cross
       ctx.rotate(star.phase * 0.2 + time * 0.06);
       ctx.lineCap = "round";
       for (let i = 0; i < 4; i += 1) {
@@ -260,7 +269,6 @@ function drawStar(
       break;
     }
     case "glint": {
-      // Tiny asymmetric shimmer — barely suggests rays
       ctx.rotate(star.phase * 0.35);
       ctx.lineCap = "round";
       ctx.lineWidth = Math.max(0.4, size * 0.22);
@@ -304,7 +312,6 @@ function drawStar(
       break;
     }
     case "soft": {
-      // Soft oval speck — no hard geometry
       ctx.rotate(star.phase * 0.4);
       ctx.beginPath();
       ctx.ellipse(0, 0, size * 0.7, size * 0.35, 0, 0, Math.PI * 2);
@@ -328,13 +335,14 @@ export function InteractiveStars() {
     let stars: Star[] = [];
     let glow: Float32Array = new Float32Array(0);
     let shooters: ShootingStar[] = [];
-    let nextShot = 1.2 + Math.random() * 2.5;
+    let nextShot = 2.4 + Math.random() * 2;
     let w = 0;
     let h = 0;
     let raf = 0;
     let time = 0;
+    let last = performance.now();
     const pointer = { x: -9999, y: -9999, active: false };
-    const dt = 0.016;
+    let seeded = false;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -345,11 +353,21 @@ export function InteractiveStars() {
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      stars = seedStars(w, h);
-      glow = new Float32Array(stars.length);
+      // Only reseed on first layout — avoid pop on resize
+      if (!seeded) {
+        stars = seedStars(w, h);
+        glow = new Float32Array(stars.length);
+        seeded = true;
+      }
     };
 
-    const draw = () => {
+    const draw = (now: number) => {
+      let dt = (now - last) / 1000;
+      last = now;
+      // Cap to avoid jumps after tab switch
+      if (dt > 0.05) dt = 0.05;
+      if (dt < 0) dt = 0;
+
       time += dt;
       ctx.clearRect(0, 0, w, h);
 
@@ -357,19 +375,24 @@ export function InteractiveStars() {
 
       for (let i = 0; i < stars.length; i += 1) {
         const star = stars[i];
+        if (time > star.delay) {
+          const progress = Math.min(1, (time - star.delay) / 1.1);
+          star.appear = easeInOut(progress);
+        }
+
         let target = 0;
-        if (pointer.active) {
+        if (pointer.active && star.appear > 0.4) {
           const d = Math.hypot(pointer.x - star.x, pointer.y - star.y);
           target = Math.max(0, 1 - d / radius) ** 1.2;
         }
-        glow[i] += (target - glow[i]) * 0.22;
+        glow[i] = damp(glow[i], target, 10, dt);
         drawStar(ctx, star, glow[i], time, w, h);
       }
 
       nextShot -= dt;
-      if (nextShot <= 0 && shooters.length < 2) {
+      if (nextShot <= 0 && shooters.length < 2 && time > 1.6) {
         shooters.push(spawnShootingStar(w, h));
-        nextShot = 2.2 + Math.random() * 4.5;
+        nextShot = 2.8 + Math.random() * 4.2;
       }
 
       for (let i = shooters.length - 1; i >= 0; i -= 1) {
@@ -377,14 +400,10 @@ export function InteractiveStars() {
         s.life += dt;
         s.vx += s.ax * dt;
         s.vy += s.ay * dt;
-        s.x += s.vx;
-        s.y += s.vy;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
         drawShootingStar(ctx, s, w, h);
-        if (
-          s.life >= s.maxLife ||
-          s.x > w + 80 ||
-          s.y > h + 80
-        ) {
+        if (s.life >= s.maxLife || s.x > w + 80 || s.y > h + 80) {
           shooters.splice(i, 1);
         }
       }
@@ -402,7 +421,8 @@ export function InteractiveStars() {
     };
 
     resize();
-    draw();
+    last = performance.now();
+    raf = requestAnimationFrame(draw);
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerleave", onLeave);

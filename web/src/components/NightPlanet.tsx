@@ -83,6 +83,14 @@ function fitCameraDistance(camera: THREE.PerspectiveCamera, radius = 1.14) {
   return Math.max(distV, distH) * 1.06;
 }
 
+function damp(current: number, target: number, lambda: number, dt: number) {
+  return current + (target - current) * (1 - Math.exp(-lambda * dt));
+}
+
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
+}
+
 export function NightPlanet() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -97,11 +105,19 @@ export function NightPlanet() {
 
     const cities = seedCities();
     const glow = new Float32Array(cities.length);
+    const birth = new Float32Array(cities.length);
+    for (let i = 0; i < cities.length; i += 1) {
+      birth[i] = Math.random() * 1.6;
+    }
     const pointer = { x: 0.5, y: 0.5, active: false };
     const follow = { x: 0.5, y: 0.5 };
     let baseZ = 3.6;
     let raf = 0;
     let disposed = false;
+    let elapsed = 0;
+    let last = performance.now();
+    let viewW = 1;
+    let viewH = 1;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
@@ -286,28 +302,29 @@ export function NightPlanet() {
 
     const worldPos = new THREE.Vector3();
     const projected = new THREE.Vector3();
+    const normal = new THREE.Vector3();
+    const viewDir = new THREE.Vector3();
 
     const resize = () => {
       const rect = wrap.getBoundingClientRect();
-      const w = Math.max(rect.width, 1);
-      const h = Math.max(rect.height, 1);
-      camera.aspect = w / h;
+      viewW = Math.max(rect.width, 1);
+      viewH = Math.max(rect.height, 1);
+      camera.aspect = viewW / viewH;
       camera.updateProjectionMatrix();
       baseZ = fitCameraDistance(camera, 1.2);
       camera.position.z = baseZ;
-      renderer.setSize(w, h, false);
+      renderer.setSize(viewW, viewH, false);
       const dpr = Math.min(window.devicePixelRatio || 1, 3);
-      overlay.width = Math.floor(w * dpr);
-      overlay.height = Math.floor(h * dpr);
-      overlay.style.width = `${w}px`;
-      overlay.style.height = `${h}px`;
+      overlay.width = Math.floor(viewW * dpr);
+      overlay.height = Math.floor(viewH * dpr);
+      overlay.style.width = `${viewW}px`;
+      overlay.style.height = `${viewH}px`;
       octx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
-    const drawOverlay = () => {
-      const rect = wrap.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
+    const drawOverlay = (dt: number) => {
+      const w = viewW;
+      const h = viewH;
       octx.clearRect(0, 0, w, h);
 
       const px = follow.x * w;
@@ -319,10 +336,10 @@ export function NightPlanet() {
 
       for (let i = 0; i < cities.length; i += 1) {
         worldPos.copy(cities[i].pos).applyMatrix4(earth.matrixWorld);
-        const normal = worldPos.clone().normalize();
-        const viewDir = camera.position.clone().sub(worldPos).normalize();
+        normal.copy(worldPos).normalize();
+        viewDir.copy(camera.position).sub(worldPos).normalize();
         if (normal.dot(viewDir) < 0.08) {
-          glow[i] *= 0.88;
+          glow[i] = damp(glow[i], 0, 8, dt);
           continue;
         }
 
@@ -332,23 +349,28 @@ export function NightPlanet() {
         const sy = (-projected.y * 0.5 + 0.5) * h;
         if (sx < -30 || sy < -30 || sx > w + 30 || sy > h + 30) continue;
 
+        const appear =
+          elapsed > birth[i]
+            ? easeOutCubic(Math.min(1, (elapsed - birth[i]) / 1.25))
+            : 0;
+        if (appear <= 0.01) continue;
+
         const dist = Math.hypot(px - sx, py - sy);
         const radiusPx = Math.min(w, h) * 0.42;
         const influence = pointer.active
           ? Math.max(0, 1 - dist / (radiusPx * 0.42)) ** 1.05
           : 0;
-        // Always show many small city lights; cursor makes them flare
         const ambient = 0.16 + (cities[i].size % 1) * 0.12;
-        const target = ambient + influence * 1.2;
-        glow[i] += (target - glow[i]) * 0.26;
-        if (glow[i] < 0.08) continue;
+        const target = (ambient + influence * 1.2) * appear;
+        glow[i] = damp(glow[i], target, 12, dt);
+        if (glow[i] < 0.05) continue;
 
         const node = {
           i,
           sx,
           sy,
           glow: glow[i],
-          size: cities[i].size * (0.55 + glow[i] * 0.9),
+          size: cities[i].size * (0.55 + glow[i] * 0.9) * (0.6 + 0.4 * appear),
         };
         nodes.push(node);
         byIndex.set(i, node);
@@ -400,29 +422,33 @@ export function NightPlanet() {
       }
     };
 
-    const animate = () => {
+    const animate = (now: number) => {
       if (disposed) return;
 
-      follow.x += ((pointer.active ? pointer.x : 0.5) - follow.x) * 0.14;
-      follow.y += ((pointer.active ? pointer.y : 0.5) - follow.y) * 0.14;
+      let dt = (now - last) / 1000;
+      last = now;
+      if (dt > 0.05) dt = 0.05;
+      if (dt < 0) dt = 0;
+      elapsed += dt;
 
-      // Slow planet rotation
-      globeGroup.rotation.y += 0.0011;
+      follow.x = damp(follow.x, pointer.active ? pointer.x : 0.5, 9, dt);
+      follow.y = damp(follow.y, pointer.active ? pointer.y : 0.5, 9, dt);
 
-      // View/camera moves with cursor, planet stays fully framed
+      // Smooth constant-speed rotation (rad/sec)
+      globeGroup.rotation.y += 0.065 * dt;
+
       const parallaxX = (follow.x - 0.5) * 0.42;
       const parallaxY = (0.5 - follow.y) * 0.32;
-      camera.position.x += (parallaxX - camera.position.x) * 0.12;
-      camera.position.y += (parallaxY - camera.position.y) * 0.12;
+      camera.position.x = damp(camera.position.x, parallaxX, 8, dt);
+      camera.position.y = damp(camera.position.y, parallaxY, 8, dt);
       camera.position.z = baseZ;
       camera.lookAt(0, 0, 0);
 
-      // Subtle extra spin from cursor drag direction
-      globeGroup.rotation.x +=
-        ((follow.y - 0.5) * 0.22 - globeGroup.rotation.x) * 0.04;
+      const tiltTarget = (follow.y - 0.5) * 0.22;
+      globeGroup.rotation.x = damp(globeGroup.rotation.x, tiltTarget, 3.5, dt);
 
       renderer.render(scene, camera);
-      drawOverlay();
+      drawOverlay(dt);
       raf = requestAnimationFrame(animate);
     };
 
@@ -437,7 +463,8 @@ export function NightPlanet() {
     };
 
     resize();
-    animate();
+    last = performance.now();
+    raf = requestAnimationFrame(animate);
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
     wrap.addEventListener("pointermove", onMove, { passive: true });
