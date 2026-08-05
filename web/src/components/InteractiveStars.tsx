@@ -17,8 +17,8 @@ type Star = {
 
 function seedStars(w: number, h: number): Star[] {
   const area = w * h;
-  const count = Math.min(260, Math.max(110, Math.floor(area / 12000)));
-  const kinds: StarKind[] = ["dot", "dot", "spark", "diamond", "glint", "flare", "soft"];
+  const count = Math.min(520, Math.max(220, Math.floor(area / 5500)));
+  const kinds: StarKind[] = ["dot", "dot", "dot", "spark", "diamond", "glint", "flare", "soft"];
   const stars: Star[] = [];
 
   for (let i = 0; i < count; i += 1) {
