@@ -63,3 +63,80 @@ body:has(main#top) {
     text-wrap: balance;
   }
 }
+
+/* Soft page transitions */
+.page-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  will-change: opacity, transform, filter;
+}
+
+.page-shell--idle {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.page-shell--out {
+  opacity: 0;
+  transform: translateY(10px) scale(0.992);
+  filter: blur(6px);
+  transition:
+    opacity 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.page-shell--in {
+  animation: pageEnter 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.99);
+    filter: blur(8px);
+  }
+  55% {
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.page-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(9, 9, 11, 0.2), transparent 70%),
+    rgba(9, 9, 11, 0.55);
+  transition: opacity 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.page-veil--on {
+  opacity: 1;
+}
+
+.site-header {
+  backdrop-filter: blur(0px);
+  transition: background-color 400ms ease, backdrop-filter 400ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-shell--out,
+  .page-shell--in,
+  .page-veil {
+    animation: none !important;
+    transition: opacity 160ms ease !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}

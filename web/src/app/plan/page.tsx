@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { SiteHeader } from "../../components/SiteHeader";
 
 const plans = [
   {
@@ -44,7 +43,6 @@ const plans = [
 export default function PlanPage() {
   return (
     <main className="min-h-[100svh] bg-ink">
-      <SiteHeader />
       <div className="mx-auto max-w-content px-6 pb-16 pt-28 md:px-8 md:pt-32">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs uppercase tracking-[0.16em] text-mist">Subscription</p>
