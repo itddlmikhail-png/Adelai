@@ -68,8 +68,9 @@ function planetCover(x: number, y: number, w: number, h: number) {
 }
 
 function shouldMaskPlanet() {
-  if (typeof window === "undefined") return true;
-  return !window.location.pathname.includes("/plan");
+  if (typeof window === "undefined") return false;
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  return path === "/Adelai" || path === "/" || path.endsWith("/Adelai");
 }
 
 function spawnShootingStar(w: number, h: number): ShootingStar {

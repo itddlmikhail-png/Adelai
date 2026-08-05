@@ -19,10 +19,10 @@ export function SiteHeader() {
             План
           </Link>
           <Link
-            href="/"
+            href="/sign-in"
             className="rounded-full bg-white px-4 py-2 text-sm font-medium text-ink transition hover:bg-white/90"
           >
-            Early Access
+            Sign in
           </Link>
         </nav>
       </div>
