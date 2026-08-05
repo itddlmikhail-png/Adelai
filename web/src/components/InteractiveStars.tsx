@@ -105,9 +105,9 @@ function drawShootingStar(
 ) {
   const t = Math.min(1, s.life / s.maxLife);
   const fade =
-    t < 0.1
-      ? easeOutCubic(t / 0.1)
-      : Math.pow(1 - (t - 0.1) / 0.9, 1.8);
+    t < 0.14
+      ? easeOutCubic(t / 0.14)
+      : Math.pow(1 - (t - 0.14) / 0.86, 2.1);
   const alpha = Math.max(0, fade);
   if (alpha <= 0.012) return;
 
@@ -182,7 +182,7 @@ function seedStars(w: number, h: number): Star[] {
       r: 0.45 + Math.random() * 1.65,
       kind: kinds[Math.floor(Math.random() * kinds.length)],
       base: 0.22 + Math.random() * 0.42,
-      twinkle: 0.35 + Math.random() * 0.95,
+      twinkle: 0.2 + Math.random() * 0.55,
       phase: Math.random() * Math.PI * 2,
       drift: (Math.random() - 0.5) * 0.12,
       delay: Math.random() * 1.8,
@@ -207,7 +207,7 @@ function drawStar(
   const cover = planetCover(ox, oy, w, h);
   if (cover >= 0.98) return;
 
-  const pulse = 0.72 + Math.sin(time * star.twinkle + star.phase) * 0.28;
+  const pulse = 0.82 + Math.sin(time * star.twinkle + star.phase) * 0.18;
   const alpha =
     Math.min(1, (star.base + glow * 1.05) * pulse) * (1 - cover) * star.appear;
   const size = star.r * (1 + glow * 2.2) * (0.55 + 0.45 * easeOutCubic(star.appear));
@@ -376,7 +376,7 @@ export function InteractiveStars() {
       for (let i = 0; i < stars.length; i += 1) {
         const star = stars[i];
         if (time > star.delay) {
-          const progress = Math.min(1, (time - star.delay) / 1.1);
+          const progress = Math.min(1, (time - star.delay) / 1.6);
           star.appear = easeInOut(progress);
         }
 
@@ -385,7 +385,7 @@ export function InteractiveStars() {
           const d = Math.hypot(pointer.x - star.x, pointer.y - star.y);
           target = Math.max(0, 1 - d / radius) ** 1.2;
         }
-        glow[i] = damp(glow[i], target, 10, dt);
+        glow[i] = damp(glow[i], target, 5.5, dt);
         drawStar(ctx, star, glow[i], time, w, h);
       }
 

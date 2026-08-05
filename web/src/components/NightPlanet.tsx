@@ -91,6 +91,12 @@ function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 }
 
+/** Smooth S-curve from -1..1 for gentle edge response */
+function softAxis(v: number) {
+  const x = Math.max(-1, Math.min(1, v * 2));
+  return x * (1 - 0.28 * x * x);
+}
+
 export function NightPlanet() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -342,7 +348,7 @@ export function NightPlanet() {
         normal.copy(worldPos).normalize();
         viewDir.copy(camera.position).sub(worldPos).normalize();
         if (normal.dot(viewDir) < 0.08) {
-          glow[i] = damp(glow[i], 0, 8, dt);
+          glow[i] = damp(glow[i], 0, 4.5, dt);
           continue;
         }
 
@@ -354,7 +360,7 @@ export function NightPlanet() {
 
         const appear =
           elapsed > birth[i]
-            ? easeOutCubic(Math.min(1, (elapsed - birth[i]) / 1.25))
+            ? easeOutCubic(Math.min(1, (elapsed - birth[i]) / 1.8))
             : 0;
         if (appear <= 0.01) continue;
 
@@ -365,7 +371,7 @@ export function NightPlanet() {
           : 0;
         const ambient = 0.16 + (cities[i].size % 1) * 0.12;
         const target = (ambient + influence * 1.2) * appear;
-        glow[i] = damp(glow[i], target, 12, dt);
+        glow[i] = damp(glow[i], target, 5.5, dt);
         if (glow[i] < 0.05) continue;
 
         const node = {
@@ -434,32 +440,32 @@ export function NightPlanet() {
       if (dt < 0) dt = 0;
       elapsed += dt;
 
-      // Soft cursor tracking — inertia for a cinematic feel
+      // Soft cursor tracking — slower return when idle feels calmer
       const aimX = pointer.active ? pointer.x : 0.5;
       const aimY = pointer.active ? pointer.y : 0.5;
-      follow.x = damp(follow.x, aimX, 4.2, dt);
-      follow.y = damp(follow.y, aimY, 4.2, dt);
+      const followRate = pointer.active ? 3.4 : 2.2;
+      follow.x = damp(follow.x, aimX, followRate, dt);
+      follow.y = damp(follow.y, aimY, followRate, dt);
 
-      const nx = follow.x - 0.5;
-      const ny = follow.y - 0.5;
-      const sx = Math.sign(nx) * Math.pow(Math.abs(nx) * 2, 1.1) * 0.5;
-      const sy = Math.sign(ny) * Math.pow(Math.abs(ny) * 2, 1.1) * 0.5;
+      const sx = softAxis(follow.x - 0.5);
+      const sy = softAxis(follow.y - 0.5);
 
-      spinY += 0.055 * dt;
+      spinY += 0.038 * dt;
 
-      const parallaxX = sx * 0.72;
-      const parallaxY = -sy * 0.55;
-      camera.position.x = damp(camera.position.x, parallaxX, 3.8, dt);
-      camera.position.y = damp(camera.position.y, parallaxY, 3.8, dt);
-      camera.position.z = damp(camera.position.z, baseZ, 3.8, dt);
+      const parallaxX = sx * 0.58;
+      const parallaxY = -sy * 0.42;
+      camera.position.x = damp(camera.position.x, parallaxX, 2.6, dt);
+      camera.position.y = damp(camera.position.y, parallaxY, 2.6, dt);
+      camera.position.z = damp(camera.position.z, baseZ, 2.6, dt);
       camera.lookAt(0, 0, 0);
 
-      const tiltTarget = sy * 0.38;
-      globeGroup.rotation.x = damp(globeGroup.rotation.x, tiltTarget, 3.2, dt);
-      const yawTarget = sx * 0.45;
-      yawFollow = damp(yawFollow, yawTarget, 3.2, dt);
+      // Planet trails the camera slightly — soft layered motion
+      const tiltTarget = sy * 0.28;
+      globeGroup.rotation.x = damp(globeGroup.rotation.x, tiltTarget, 2.1, dt);
+      const yawTarget = sx * 0.34;
+      yawFollow = damp(yawFollow, yawTarget, 2.1, dt);
       globeGroup.rotation.y = spinY + yawFollow;
-      globeGroup.rotation.z = damp(globeGroup.rotation.z, -sx * 0.1, 2.8, dt);
+      globeGroup.rotation.z = damp(globeGroup.rotation.z, -sx * 0.07, 1.8, dt);
 
       renderer.render(scene, camera);
       drawOverlay(dt);

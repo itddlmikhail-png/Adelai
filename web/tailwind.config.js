@@ -26,13 +26,13 @@ module.exports = {
         content: "1120px",
       },
       animation: {
-        "rise-in": "riseIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both",
-        "fade-in": "fadeIn 0.6s ease both",
-        float: "float 8s ease-in-out infinite",
+        "rise-in": "riseIn 1.1s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "fade-in": "fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) both",
+        float: "float 10s ease-in-out infinite",
       },
       keyframes: {
         riseIn: {
-          "0%": { opacity: "0", transform: "translateY(18px)" },
+          "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         fadeIn: {
@@ -41,7 +41,7 @@ module.exports = {
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-8px)" },
+          "50%": { transform: "translateY(-6px)" },
         },
       },
     },
