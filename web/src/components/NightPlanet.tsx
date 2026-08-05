@@ -110,7 +110,10 @@ export function NightPlanet() {
     camera.position.set(0, 0, baseZ);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     renderer.setClearColor(0x000000, 1);
     wrap.insertBefore(renderer.domElement, overlay);
     Object.assign(renderer.domElement.style, {
@@ -153,22 +156,77 @@ export function NightPlanet() {
     const textureLoader = new THREE.TextureLoader();
     const earthTex = textureLoader.load(`${BASE}/earth-night.jpg`);
     earthTex.colorSpace = THREE.SRGBColorSpace;
+    earthTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    earthTex.minFilter = THREE.LinearMipmapLinearFilter;
+    earthTex.magFilter = THREE.LinearFilter;
+    earthTex.generateMipmaps = true;
 
     const earth = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 128, 128),
-      new THREE.MeshBasicMaterial({ map: earthTex })
+      new THREE.SphereGeometry(1, 256, 256),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          map: { value: earthTex },
+          saturation: { value: 1.55 },
+          contrast: { value: 1.22 },
+          brightness: { value: 1.12 },
+          warmth: { value: 0.08 },
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          varying vec3 vNormal;
+          void main() {
+            vUv = uv;
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform sampler2D map;
+          uniform float saturation;
+          uniform float contrast;
+          uniform float brightness;
+          uniform float warmth;
+          varying vec2 vUv;
+          varying vec3 vNormal;
+
+          vec3 applySaturation(vec3 color, float amount) {
+            float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
+            return mix(vec3(luma), color, amount);
+          }
+
+          void main() {
+            vec4 tex = texture2D(map, vUv);
+            vec3 color = tex.rgb * brightness;
+
+            // Lift shadows slightly, keep oceans deep
+            color = pow(max(color, 0.0), vec3(0.92));
+            color = (color - 0.5) * contrast + 0.5;
+
+            // Richer amber city lights + cooler ocean tones
+            float lum = dot(color, vec3(0.299, 0.587, 0.114));
+            color.r += warmth * (1.0 - lum) * 0.15;
+            color.g += warmth * lum * 0.35;
+            color.b += (1.0 - warmth) * (1.0 - lum) * 0.22;
+
+            color = applySaturation(color, saturation);
+            color = clamp(color, 0.0, 1.0);
+
+            gl_FragColor = vec4(color, tex.a);
+          }
+        `,
+      })
     );
     globeGroup.add(earth);
 
     // Soft outer atmosphere bloom
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.065, 80, 80),
+      new THREE.SphereGeometry(1.065, 128, 128),
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending,
-        uniforms: { glowColor: { value: new THREE.Color(0x7ec4ff) } },
+        uniforms: { glowColor: { value: new THREE.Color(0x4db8ff) } },
         vertexShader: `
           varying vec3 vNormal;
           void main() {
@@ -180,8 +238,8 @@ export function NightPlanet() {
           varying vec3 vNormal;
           uniform vec3 glowColor;
           void main() {
-            float intensity = pow(0.58 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
-            gl_FragColor = vec4(glowColor, 1.0) * intensity * 1.15;
+            float intensity = pow(0.58 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
+            gl_FragColor = vec4(glowColor, 1.0) * intensity * 1.45;
           }
         `,
       })
@@ -190,13 +248,13 @@ export function NightPlanet() {
 
     // Crisp limb / contour fresnel
     const rim = new THREE.Mesh(
-      new THREE.SphereGeometry(1.008, 128, 128),
+      new THREE.SphereGeometry(1.008, 256, 256),
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         uniforms: {
-          rimColor: { value: new THREE.Color(0xa8d8ff) },
+          rimColor: { value: new THREE.Color(0x6ecfff) },
         },
         vertexShader: `
           varying vec3 vNormal;
@@ -216,7 +274,7 @@ export function NightPlanet() {
             vec3 viewDir = normalize(cameraPosition - vWorldPos);
             float fresnel = pow(1.0 - max(dot(viewDir, normalize(vNormal)), 0.0), 3.2);
             float edge = smoothstep(0.15, 0.85, fresnel);
-            gl_FragColor = vec4(rimColor, edge * 0.72);
+            gl_FragColor = vec4(rimColor, edge * 0.88);
           }
         `,
       })
@@ -238,7 +296,7 @@ export function NightPlanet() {
       baseZ = fitCameraDistance(camera, 1.2);
       camera.position.z = baseZ;
       renderer.setSize(w, h, false);
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
       overlay.width = Math.floor(w * dpr);
       overlay.height = Math.floor(h * dpr);
       overlay.style.width = `${w}px`;
@@ -308,8 +366,8 @@ export function NightPlanet() {
             octx.beginPath();
             octx.moveTo(node.sx, node.sy);
             octx.lineTo(other.sx, other.sy);
-            octx.strokeStyle = `rgba(255, 210, 90, ${0.1 + strength * 0.45})`;
-            octx.lineWidth = 0.4 + strength * 0.85;
+            octx.strokeStyle = `rgba(255, 195, 70, ${0.12 + strength * 0.52})`;
+            octx.lineWidth = 0.45 + strength * 0.9;
             octx.stroke();
           }
         }
@@ -318,7 +376,7 @@ export function NightPlanet() {
       for (const node of nodes) {
         const a = node.glow;
         const hot = a > 0.45;
-        const bloomR = node.size * (hot ? 4.4 : 2.4);
+        const bloomR = node.size * (hot ? 4.8 : 2.6);
         const g = octx.createRadialGradient(
           node.sx,
           node.sy,
@@ -327,16 +385,16 @@ export function NightPlanet() {
           node.sy,
           bloomR
         );
-        g.addColorStop(0, `rgba(255, 232, 145, ${a * (hot ? 0.95 : 0.55)})`);
-        g.addColorStop(0.4, `rgba(255, 185, 45, ${a * (hot ? 0.3 : 0.14)})`);
-        g.addColorStop(1, "rgba(255, 140, 0, 0)");
+        g.addColorStop(0, `rgba(255, 220, 120, ${a * (hot ? 1 : 0.62)})`);
+        g.addColorStop(0.35, `rgba(255, 170, 35, ${a * (hot ? 0.38 : 0.18)})`);
+        g.addColorStop(1, "rgba(255, 100, 20, 0)");
         octx.fillStyle = g;
         octx.beginPath();
         octx.arc(node.sx, node.sy, bloomR, 0, Math.PI * 2);
         octx.fill();
 
         octx.beginPath();
-        octx.fillStyle = `rgba(255, 245, 195, ${Math.min(1, a * (hot ? 1.2 : 0.75))})`;
+        octx.fillStyle = `rgba(255, 248, 210, ${Math.min(1, a * (hot ? 1.25 : 0.82))})`;
         octx.arc(node.sx, node.sy, Math.max(0.45, node.size * 0.28), 0, Math.PI * 2);
         octx.fill();
       }
