@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import { Syne, Manrope } from "next/font/google";
-import { InteractiveStars } from "../components/InteractiveStars";
-import { PageTransition } from "../components/PageTransition";
-import { SiteHeader } from "../components/SiteHeader";
 import "./globals.css";
 
 const display = Syne({
@@ -36,11 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className={`${display.variable} ${sans.variable}`}>
-      <body className="bg-ink text-white antialiased">
-        <InteractiveStars />
-        <SiteHeader />
-        <PageTransition>{children}</PageTransition>
-      </body>
+      <body className="bg-ink text-white antialiased">{children}</body>
     </html>
   );
 }

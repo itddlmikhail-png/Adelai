@@ -1,0 +1,158 @@
+export const NAV = [
+  { href: "/workspace", label: "Главная", icon: "home" },
+  { href: "/workspace/chats", label: "Чаты", icon: "chat" },
+  { href: "/workspace/models", label: "AI модели", icon: "models" },
+  { href: "/workspace/projects", label: "Проекты", icon: "projects" },
+  { href: "/workspace/documents", label: "Документы", icon: "docs" },
+  { href: "/workspace/files", label: "Файлы", icon: "files" },
+  { href: "/workspace/agents", label: "AI Агенты", icon: "agents" },
+  { href: "/workspace/image", label: "Изображения", icon: "image" },
+  { href: "/workspace/automations", label: "Автоматизации", icon: "flow" },
+  { href: "/workspace/prompts", label: "Промпты", icon: "prompts" },
+  { href: "/workspace/team", label: "Команда", icon: "team" },
+  { href: "/workspace/integrations", label: "Интеграции", icon: "plug" },
+  { href: "/workspace/settings", label: "Настройки", icon: "settings" },
+] as const;
+
+export const MODELS = [
+  {
+    id: "gpt-4.1",
+    brand: "ChatGPT",
+    name: "GPT-4.1",
+    speed: 86,
+    quality: 94,
+    cost: "$$",
+    context: "1M",
+    caps: ["Vision", "Code", "Tools"],
+  },
+  {
+    id: "claude-4",
+    brand: "Claude",
+    name: "Claude 4 Sonnet",
+    speed: 82,
+    quality: 96,
+    cost: "$$",
+    context: "200K",
+    caps: ["Long context", "Code", "Docs"],
+  },
+  {
+    id: "gemini-2.5",
+    brand: "Gemini",
+    name: "Gemini 2.5 Pro",
+    speed: 88,
+    quality: 92,
+    cost: "$$",
+    context: "1M",
+    caps: ["Multimodal", "Search"],
+  },
+  {
+    id: "grok-3",
+    brand: "Grok",
+    name: "Grok 3",
+    speed: 90,
+    quality: 88,
+    cost: "$",
+    context: "128K",
+    caps: ["Realtime", "Humor"],
+  },
+  {
+    id: "deepseek-r1",
+    brand: "DeepSeek",
+    name: "DeepSeek R1",
+    speed: 78,
+    quality: 91,
+    cost: "$",
+    context: "128K",
+    caps: ["Reasoning", "Code"],
+  },
+  {
+    id: "mistral-large",
+    brand: "Mistral",
+    name: "Mistral Large",
+    speed: 87,
+    quality: 89,
+    cost: "$",
+    context: "128K",
+    caps: ["EU", "Fast"],
+  },
+  {
+    id: "perplexity",
+    brand: "Perplexity",
+    name: "Sonar Pro",
+    speed: 84,
+    quality: 90,
+    cost: "$$",
+    context: "127K",
+    caps: ["Search", "Citations"],
+  },
+  {
+    id: "llama-4",
+    brand: "Llama",
+    name: "Llama 4",
+    speed: 85,
+    quality: 87,
+    cost: "$",
+    context: "128K",
+    caps: ["Open", "Local"],
+  },
+  {
+    id: "qwen-3",
+    brand: "Qwen",
+    name: "Qwen 3",
+    speed: 86,
+    quality: 88,
+    cost: "$",
+    context: "128K",
+    caps: ["Multilingual", "Code"],
+  },
+  {
+    id: "openrouter",
+    brand: "OpenRouter",
+    name: "Auto Router",
+    speed: 80,
+    quality: 90,
+    cost: "var",
+    context: "var",
+    caps: ["Routing", "Fallback"],
+  },
+] as const;
+
+export const AGENTS = [
+  { name: "Программист", role: "Full-stack engineering", tone: "precise" },
+  { name: "UX/UI дизайнер", role: "Product design", tone: "visual" },
+  { name: "Маркетолог", role: "Growth & positioning", tone: "sharp" },
+  { name: "Юрист", role: "Legal review", tone: "formal" },
+  { name: "Финансовый аналитик", role: "Finance & models", tone: "analytical" },
+  { name: "Трейдер", role: "Markets & risk", tone: "fast" },
+  { name: "Психолог", role: "Coaching & clarity", tone: "calm" },
+  { name: "Переводчик", role: "Localization", tone: "neutral" },
+  { name: "Копирайтер", role: "Brand writing", tone: "creative" },
+] as const;
+
+export const CHATS = [
+  { title: "Архитектура Adelai Workspace", time: "2 мин", pinned: true, folder: "Product" },
+  { title: "Рефакторинг NightPlanet", time: "24 мин", pinned: true, folder: "Code" },
+  { title: "Тарифы Pro / Business", time: "1 ч", pinned: false, folder: "Business" },
+  { title: "Системный промпт агента Designer", time: "Вчера", pinned: false, folder: "Agents" },
+  { title: "Перевод лендинга на EN", time: "Вчера", pinned: false, folder: "Content" },
+] as const;
+
+export const PROJECTS = [
+  { name: "Adelai OS", status: "Active", chats: 18, files: 42, favorite: true },
+  { name: "Brand System", status: "Active", chats: 7, files: 15, favorite: true },
+  { name: "Mobile Launch", status: "Paused", chats: 11, files: 28, favorite: false },
+  { name: "Research Lab", status: "Active", chats: 23, files: 61, favorite: true },
+] as const;
+
+export const DOCS = [
+  { title: "Product Vision", updated: "Сегодня", kind: "Doc" },
+  { title: "Pricing Notes", updated: "Вчера", kind: "Doc" },
+  { title: "Onboarding Flow", updated: "2 дня", kind: "Doc" },
+] as const;
+
+export const FILES = [
+  { name: "earth-day.jpg", size: "1.3 MB", type: "Image", tag: "Design" },
+  { name: "adelai-brief.pdf", size: "820 KB", type: "PDF", tag: "Product" },
+  { name: "metrics.xlsx", size: "240 KB", type: "Excel", tag: "Finance" },
+  { name: "pitch.docx", size: "410 KB", type: "Word", tag: "Business" },
+] as const;

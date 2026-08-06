@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 function GoogleIcon() {
   return (
@@ -36,11 +37,16 @@ function AppleIcon() {
 type Mode = "signin" | "reset";
 
 export function SignInForm() {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const enterWorkspace = () => {
+    router.push("/workspace/");
+  };
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -54,11 +60,11 @@ export function SignInForm() {
             ? "Если аккаунт существует, мы отправили ссылку для восстановления на почту."
             : "Введите почту, чтобы восстановить пароль."
         );
+        setSubmitting(false);
       } else {
-        setMessage("Вход скоро будет доступен. Пока можно продолжить через Google или Apple.");
+        enterWorkspace();
       }
-      setSubmitting(false);
-    }, 450);
+    }, 350);
   };
 
   return (
@@ -80,9 +86,7 @@ export function SignInForm() {
       >
         <button
           type="button"
-          onClick={() =>
-            setMessage("Continue with Google будет подключён к OAuth.")
-          }
+          onClick={enterWorkspace}
           className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white text-[15px] font-semibold text-ink transition hover:bg-white/92 active:scale-[0.99]"
         >
           <GoogleIcon />
@@ -90,9 +94,7 @@ export function SignInForm() {
         </button>
         <button
           type="button"
-          onClick={() =>
-            setMessage("Continue with Apple будет подключён к Sign in with Apple.")
-          }
+          onClick={enterWorkspace}
           className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/12 bg-black text-[15px] font-semibold text-white transition hover:bg-black/80 active:scale-[0.99]"
         >
           <AppleIcon />

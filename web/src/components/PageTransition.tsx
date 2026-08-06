@@ -36,7 +36,10 @@ function resolveAppPath(anchor: HTMLAnchorElement): string | null {
     if (url.origin !== window.location.origin) return null;
     const onBase = window.location.pathname.startsWith(BASE);
     if (onBase && !url.pathname.startsWith(BASE)) return null;
-    return normalizePath(url.pathname);
+    const path = normalizePath(url.pathname);
+    // Marketing transitions only — workspace has its own shell
+    if (path.startsWith("/workspace")) return null;
+    return path;
   } catch {
     return null;
   }

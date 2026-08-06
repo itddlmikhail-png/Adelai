@@ -33,6 +33,12 @@ body:has(main#top) {
   overscroll-behavior: none;
 }
 
+html:has(.workspace-root),
+body:has(.workspace-root) {
+  height: 100%;
+  overflow: hidden;
+}
+
 ::selection {
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
