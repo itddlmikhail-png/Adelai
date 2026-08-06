@@ -112,10 +112,14 @@ export function NightPlanet() {
     const cities = seedCities();
     const glow = new Float32Array(cities.length);
     const birth = new Float32Array(cities.length);
+    const floatPhase = new Float32Array(cities.length);
+    const floatSpeed = new Float32Array(cities.length);
     for (let i = 0; i < cities.length; i += 1) {
-      birth[i] = Math.random() * 1.6;
+      birth[i] = Math.random() * 1.8;
+      floatPhase[i] = Math.random() * Math.PI * 2;
+      floatSpeed[i] = 0.7 + Math.random() * 1.1;
     }
-    const pointer = { x: 0.5, y: 0.5, active: false };
+    const pointer = { x: 0.5, y: 0.5, active: false, pressed: false };
     const follow = { x: 0.5, y: 0.5 };
     let baseZ = 3.6;
     let spinY = 0.12;
@@ -339,7 +343,14 @@ export function NightPlanet() {
       const px = follow.x * w;
       const py = follow.y * h;
 
-      type Node = { i: number; sx: number; sy: number; glow: number; size: number };
+      type Node = {
+        i: number;
+        sx: number;
+        sy: number;
+        glow: number;
+        size: number;
+        appear: number;
+      };
       const nodes: Node[] = [];
       const byIndex = new Map<number, Node>();
 
@@ -354,51 +365,69 @@ export function NightPlanet() {
 
         projected.copy(worldPos).project(camera);
         if (projected.z > 1) continue;
-        const sx = (projected.x * 0.5 + 0.5) * w;
-        const sy = (-projected.y * 0.5 + 0.5) * h;
-        if (sx < -30 || sy < -30 || sx > w + 30 || sy > h + 30) continue;
+        const baseX = (projected.x * 0.5 + 0.5) * w;
+        const baseY = (-projected.y * 0.5 + 0.5) * h;
+        if (baseX < -40 || baseY < -40 || baseX > w + 40 || baseY > h + 40) continue;
 
-        const appear =
+        // Soft swim-in appear
+        const appearT =
           elapsed > birth[i]
-            ? easeOutCubic(Math.min(1, (elapsed - birth[i]) / 1.8))
+            ? easeOutCubic(Math.min(1, (elapsed - birth[i]) / 2.1))
             : 0;
-        if (appear <= 0.01) continue;
+        if (appearT <= 0.01) continue;
 
-        const dist = Math.hypot(px - sx, py - sy);
-        const radiusPx = Math.min(w, h) * 0.42;
-        const influence = pointer.active
-          ? Math.max(0, 1 - dist / (radiusPx * 0.42)) ** 1.05
+        const dist = Math.hypot(px - baseX, py - baseY);
+        const radiusPx = Math.min(w, h) * 0.46;
+        // Lights bloom on press near the finger/cursor
+        const influence = pointer.pressed
+          ? Math.max(0, 1 - dist / (radiusPx * 0.48)) ** 1.05
           : 0;
-        const ambient = 0.16 + (cities[i].size % 1) * 0.12;
-        const target = (ambient + influence * 1.2) * appear;
-        glow[i] = damp(glow[i], target, 5.5, dt);
-        if (glow[i] < 0.05) continue;
+        const ambient = 0.1 + (cities[i].size % 1) * 0.08;
+        const target = (ambient + influence * 1.45) * appearT;
+        glow[i] = damp(glow[i], target, pointer.pressed ? 7 : 4.2, dt);
+        if (glow[i] < 0.04) continue;
+
+        // Floating / swimming motion — stronger while appearing and when lit
+        const swim = (1 - appearT) * 1.2 + glow[i] * 0.85;
+        const t = elapsed * floatSpeed[i] + floatPhase[i];
+        const floatX = Math.sin(t * 1.15) * 2.8 * swim + Math.cos(t * 0.55) * 1.2 * swim;
+        const floatY =
+          Math.cos(t * 0.95) * 3.4 * swim -
+          (1 - appearT) * 14 -
+          Math.sin(t * 0.4) * 1.1 * glow[i];
+
+        const sx = baseX + floatX;
+        const sy = baseY + floatY;
 
         const node = {
           i,
           sx,
           sy,
           glow: glow[i],
-          size: cities[i].size * (0.55 + glow[i] * 0.9) * (0.6 + 0.4 * appear),
+          size:
+            cities[i].size *
+            (0.55 + glow[i] * 0.95) *
+            (0.55 + 0.45 * appearT),
+          appear: appearT,
         };
         nodes.push(node);
         byIndex.set(i, node);
       }
 
-      if (pointer.active) {
+      if (pointer.pressed) {
         octx.lineCap = "round";
         for (const node of nodes) {
-          if (node.glow < 0.38) continue;
+          if (node.glow < 0.4) continue;
           for (const link of cities[node.i].links) {
             if (link <= node.i) continue;
             const other = byIndex.get(link);
-            if (!other || other.glow < 0.38) continue;
+            if (!other || other.glow < 0.4) continue;
             const strength = Math.min(node.glow, other.glow);
             octx.beginPath();
             octx.moveTo(node.sx, node.sy);
             octx.lineTo(other.sx, other.sy);
-            octx.strokeStyle = `rgba(255, 195, 70, ${0.12 + strength * 0.52})`;
-            octx.lineWidth = 0.45 + strength * 0.9;
+            octx.strokeStyle = `rgba(255, 195, 70, ${0.1 + strength * 0.48})`;
+            octx.lineWidth = 0.4 + strength * 0.85;
             octx.stroke();
           }
         }
@@ -407,7 +436,7 @@ export function NightPlanet() {
       for (const node of nodes) {
         const a = node.glow;
         const hot = a > 0.45;
-        const bloomR = node.size * (hot ? 4.8 : 2.6);
+        const bloomR = node.size * (hot ? 5.1 : 2.7);
         const g = octx.createRadialGradient(
           node.sx,
           node.sy,
@@ -416,8 +445,8 @@ export function NightPlanet() {
           node.sy,
           bloomR
         );
-        g.addColorStop(0, `rgba(255, 220, 120, ${a * (hot ? 1 : 0.62)})`);
-        g.addColorStop(0.35, `rgba(255, 170, 35, ${a * (hot ? 0.38 : 0.18)})`);
+        g.addColorStop(0, `rgba(255, 220, 120, ${a * (hot ? 1 : 0.58)})`);
+        g.addColorStop(0.35, `rgba(255, 170, 35, ${a * (hot ? 0.36 : 0.16)})`);
         g.addColorStop(1, "rgba(255, 100, 20, 0)");
         octx.fillStyle = g;
         octx.beginPath();
@@ -425,7 +454,7 @@ export function NightPlanet() {
         octx.fill();
 
         octx.beginPath();
-        octx.fillStyle = `rgba(255, 248, 210, ${Math.min(1, a * (hot ? 1.25 : 0.82))})`;
+        octx.fillStyle = `rgba(255, 248, 210, ${Math.min(1, a * (hot ? 1.25 : 0.78))})`;
         octx.arc(node.sx, node.sy, Math.max(0.45, node.size * 0.28), 0, Math.PI * 2);
         octx.fill();
       }
@@ -472,14 +501,36 @@ export function NightPlanet() {
       raf = requestAnimationFrame(animate);
     };
 
-    const onMove = (e: PointerEvent) => {
+    const setPointerFromEvent = (e: PointerEvent) => {
       const rect = wrap.getBoundingClientRect();
       pointer.x = (e.clientX - rect.left) / rect.width;
       pointer.y = (e.clientY - rect.top) / rect.height;
       pointer.active = true;
     };
+
+    const onMove = (e: PointerEvent) => {
+      setPointerFromEvent(e);
+    };
+    const onDown = (e: PointerEvent) => {
+      setPointerFromEvent(e);
+      pointer.pressed = true;
+      try {
+        wrap.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+    };
+    const onUp = (e: PointerEvent) => {
+      pointer.pressed = false;
+      try {
+        wrap.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+    };
     const onLeave = () => {
       pointer.active = false;
+      pointer.pressed = false;
     };
 
     resize();
@@ -488,16 +539,20 @@ export function NightPlanet() {
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
     wrap.addEventListener("pointermove", onMove, { passive: true });
+    wrap.addEventListener("pointerdown", onDown, { passive: true });
+    wrap.addEventListener("pointerup", onUp, { passive: true });
+    wrap.addEventListener("pointercancel", onUp, { passive: true });
     wrap.addEventListener("pointerleave", onLeave);
-    wrap.addEventListener("pointerdown", onMove, { passive: true });
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
       wrap.removeEventListener("pointermove", onMove);
+      wrap.removeEventListener("pointerdown", onDown);
+      wrap.removeEventListener("pointerup", onUp);
+      wrap.removeEventListener("pointercancel", onUp);
       wrap.removeEventListener("pointerleave", onLeave);
-      wrap.removeEventListener("pointerdown", onMove);
       earthTex.dispose();
       earth.geometry.dispose();
       (earth.material as THREE.Material).dispose();
