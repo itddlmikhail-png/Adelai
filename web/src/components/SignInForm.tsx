@@ -1,7 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  getSession,
+  signInWithEmail,
+  signInWithProvider,
+} from "../lib/auth";
 
 function GoogleIcon() {
   return (
@@ -42,16 +47,38 @@ export function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (getSession()) {
+      router.replace("/workspace/");
+    }
+  }, [router]);
 
   const enterWorkspace = () => {
     router.push("/workspace/");
+  };
+
+  const onSocial = (provider: "google" | "apple") => {
+    setError("");
+    setSubmitting(true);
+    window.setTimeout(() => {
+      try {
+        signInWithProvider(provider);
+        enterWorkspace();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Не удалось войти.");
+        setSubmitting(false);
+      }
+    }, 280);
   };
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setMessage("");
+    setError("");
 
     window.setTimeout(() => {
       if (mode === "reset") {
@@ -61,8 +88,15 @@ export function SignInForm() {
             : "Введите почту, чтобы восстановить пароль."
         );
         setSubmitting(false);
-      } else {
+        return;
+      }
+
+      try {
+        signInWithEmail(email, password);
         enterWorkspace();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Не удалось войти.");
+        setSubmitting(false);
       }
     }, 350);
   };
@@ -75,7 +109,7 @@ export function SignInForm() {
         </h1>
         <p className="mt-2 text-[15px] text-mist">
           {mode === "signin"
-            ? "Войдите в Adelai, чтобы продолжить работу в Projects."
+            ? "Войдите в Adelai, чтобы открыть личный кабинет."
             : "Укажите почту — пришлём ссылку для сброса пароля."}
         </p>
       </div>
@@ -86,16 +120,18 @@ export function SignInForm() {
       >
         <button
           type="button"
-          onClick={enterWorkspace}
-          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white text-[15px] font-semibold text-ink transition hover:bg-white/92 active:scale-[0.99]"
+          disabled={submitting}
+          onClick={() => onSocial("google")}
+          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white text-[15px] font-semibold text-ink transition hover:bg-white/92 disabled:opacity-60 active:scale-[0.99]"
         >
           <GoogleIcon />
           Continue with Google
         </button>
         <button
           type="button"
-          onClick={enterWorkspace}
-          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/12 bg-black text-[15px] font-semibold text-white transition hover:bg-black/80 active:scale-[0.99]"
+          disabled={submitting}
+          onClick={() => onSocial("apple")}
+          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/12 bg-black text-[15px] font-semibold text-white transition hover:bg-black/80 disabled:opacity-60 active:scale-[0.99]"
         >
           <AppleIcon />
           Continue with Apple
@@ -153,6 +189,7 @@ export function SignInForm() {
               onClick={() => {
                 setMode("reset");
                 setMessage("");
+                setError("");
               }}
               className="text-sm text-mist transition hover:text-white"
             >
@@ -179,6 +216,7 @@ export function SignInForm() {
             onClick={() => {
               setMode("signin");
               setMessage("");
+              setError("");
             }}
             className="w-full text-center text-sm text-mist transition hover:text-white"
           >
@@ -186,9 +224,13 @@ export function SignInForm() {
           </button>
         )}
 
-        {message && (
-          <p className="animate-fade-in text-center text-sm leading-relaxed text-mist">
-            {message}
+        {(message || error) && (
+          <p
+            className={`animate-fade-in text-center text-sm leading-relaxed ${
+              error ? "text-red-300" : "text-mist"
+            }`}
+          >
+            {error || message}
           </p>
         )}
       </form>
