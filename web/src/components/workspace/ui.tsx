@@ -159,6 +159,18 @@ export function Icon({
           <path d="m15 8-6.5 6.5a2.5 2.5 0 0 0 3.5 3.5L18 12a4 4 0 0 0-5.5-5.5L6 13" />
         </Svg>
       );
+    case "menu":
+      return (
+        <Svg className={className}>
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </Svg>
+      );
+    case "close":
+      return (
+        <Svg className={className}>
+          <path d="M6 6l12 12M18 6 6 18" />
+        </Svg>
+      );
     default:
       return (
         <Svg className={className}>
