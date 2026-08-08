@@ -129,6 +129,259 @@ export const AGENTS = [
   { name: "Копирайтер", role: "Brand writing", tone: "creative" },
 ] as const;
 
+export type AgentRoleId =
+  | "manager"
+  | "programmer"
+  | "designer"
+  | "marketer"
+  | "analyst"
+  | "copywriter"
+  | "devops"
+  | "sales"
+  | "support"
+  | "researcher";
+
+export type AgentRole = {
+  id: AgentRoleId;
+  title: string;
+  subtitle: string;
+  blurb: string;
+  questions: { id: string; prompt: string; placeholder: string }[];
+};
+
+export const AGENT_ROLES: AgentRole[] = [
+  {
+    id: "manager",
+    title: "Менеджер",
+    subtitle: "Проекты и команда",
+    blurb: "Планирует задачи, держит сроки и синхронизирует людей.",
+    questions: [
+      {
+        id: "focus",
+        prompt: "Какими проектами или продуктами агент будет управлять?",
+        placeholder: "Например: запуск мобильного приложения Adelai…",
+      },
+      {
+        id: "team",
+        prompt: "Кто в команде и какие роли важны?",
+        placeholder: "Дизайн, разработка, маркетинг…",
+      },
+      {
+        id: "style",
+        prompt: "Какой стиль управления предпочтительнее?",
+        placeholder: "Коротко и по делу / мягко и поддерживающе…",
+      },
+    ],
+  },
+  {
+    id: "programmer",
+    title: "Программист",
+    subtitle: "Код и архитектура",
+    blurb: "Пишет код, ревьюит решения и помогает с техническими задачами.",
+    questions: [
+      {
+        id: "stack",
+        prompt: "Какой стек и языки использует команда?",
+        placeholder: "Next.js, TypeScript, Swift…",
+      },
+      {
+        id: "repo",
+        prompt: "Что важно знать о кодовой базе?",
+        placeholder: "Монорепо, App Router, static export…",
+      },
+      {
+        id: "rules",
+        prompt: "Какие правила кода обязательны?",
+        placeholder: "Без лишних зависимостей, понятные имена…",
+      },
+    ],
+  },
+  {
+    id: "designer",
+    title: "Дизайнер",
+    subtitle: "UX / UI",
+    blurb: "Думает интерфейсами, визуальной ясностью и пользовательским путём.",
+    questions: [
+      {
+        id: "brand",
+        prompt: "Какой визуальный язык у продукта?",
+        placeholder: "Тёмный минимализм, крупная типографика…",
+      },
+      {
+        id: "users",
+        prompt: "Для кого делаем интерфейс?",
+        placeholder: "Основатели, команды, мобильные пользователи…",
+      },
+      {
+        id: "deliverables",
+        prompt: "Что агент должен чаще всего выдавать?",
+        placeholder: "Макеты экранов, UX-копирайт, дизайн-критика…",
+      },
+    ],
+  },
+  {
+    id: "marketer",
+    title: "Маркетолог",
+    subtitle: "Рост и позиционирование",
+    blurb: "Формулирует офферы, каналы и тексты, которые приводят пользователей.",
+    questions: [
+      {
+        id: "audience",
+        prompt: "Кто ваша целевая аудитория?",
+        placeholder: "Стартапы, создатели AI-продуктов…",
+      },
+      {
+        id: "offer",
+        prompt: "Какой главный оффер нужно доносить?",
+        placeholder: "AI Operating System для проектов…",
+      },
+      {
+        id: "channels",
+        prompt: "Где планируете расти?",
+        placeholder: "Landing, Product Hunt, Telegram, SEO…",
+      },
+    ],
+  },
+  {
+    id: "analyst",
+    title: "Аналитик",
+    subtitle: "Данные и выводы",
+    blurb: "Собирает метрики, находит инсайты и предлагает решения на фактах.",
+    questions: [
+      {
+        id: "metrics",
+        prompt: "Какие метрики важнее всего?",
+        placeholder: "Retention, conversion, AI usage…",
+      },
+      {
+        id: "sources",
+        prompt: "Откуда брать данные?",
+        placeholder: "CSV, Notion, внутренняя аналитика…",
+      },
+      {
+        id: "output",
+        prompt: "В каком виде нужны выводы?",
+        placeholder: "Краткий summary + таблица + next steps…",
+      },
+    ],
+  },
+  {
+    id: "copywriter",
+    title: "Копирайтер",
+    subtitle: "Тексты и голос бренда",
+    blurb: "Пишет ясно, в тоне продукта — от лендинга до писем.",
+    questions: [
+      {
+        id: "voice",
+        prompt: "Какой тон голоса бренда?",
+        placeholder: "Спокойный, уверенный, без хайпа…",
+      },
+      {
+        id: "formats",
+        prompt: "Какие форматы нужны чаще?",
+        placeholder: "Hero-тексты, email, onboarding…",
+      },
+      {
+        id: "forbidden",
+        prompt: "Чего избегать в текстах?",
+        placeholder: "Клише, агрессивные CTA, канцелярит…",
+      },
+    ],
+  },
+  {
+    id: "devops",
+    title: "DevOps",
+    subtitle: "Инфра и релизы",
+    blurb: "Настраивает деплой, мониторинг и стабильные пайплайны.",
+    questions: [
+      {
+        id: "infra",
+        prompt: "Где сейчас живёт продукт?",
+        placeholder: "GitHub Pages, Vercel, свой VPS…",
+      },
+      {
+        id: "ci",
+        prompt: "Какой процесс релиза нужен?",
+        placeholder: "PR → build → preview → prod…",
+      },
+      {
+        id: "risks",
+        prompt: "Какие риски важнее закрыть первыми?",
+        placeholder: "Падения деплоя, секреты, откаты…",
+      },
+    ],
+  },
+  {
+    id: "sales",
+    title: "Продажник",
+    subtitle: "Сделки и питчи",
+    blurb: "Помогает упаковать предложение и вести клиента к решению.",
+    questions: [
+      {
+        id: "product",
+        prompt: "Что именно продаём?",
+        placeholder: "Adelai Pro для команд…",
+      },
+      {
+        id: "objections",
+        prompt: "Какие возражения слышите чаще?",
+        placeholder: "Дорого, уже есть ChatGPT…",
+      },
+      {
+        id: "goal",
+        prompt: "Какая цель продаж на ближайший месяц?",
+        placeholder: "10 демо / 3 платящих клиента…",
+      },
+    ],
+  },
+  {
+    id: "support",
+    title: "Саппорт",
+    subtitle: "Помощь пользователям",
+    blurb: "Отвечает спокойно, решает проблемы и собирает обратную связь.",
+    questions: [
+      {
+        id: "product_area",
+        prompt: "По каким разделам чаще пишут?",
+        placeholder: "Вход, Workspace, биллинг…",
+      },
+      {
+        id: "tone",
+        prompt: "Какой тон ответов нужен?",
+        placeholder: "Дружелюбный, короткий, с шагами…",
+      },
+      {
+        id: "escalation",
+        prompt: "Когда эскалировать человеку?",
+        placeholder: "Баги оплаты, потеря данных…",
+      },
+    ],
+  },
+  {
+    id: "researcher",
+    title: "Исследователь",
+    subtitle: "Рынок и инсайты",
+    blurb: "Изучает конкурентов, тренды и помогает принимать решения.",
+    questions: [
+      {
+        id: "topic",
+        prompt: "Что исследовать в первую очередь?",
+        placeholder: "AI workspace конкуренты, pricing…",
+      },
+      {
+        id: "depth",
+        prompt: "Насколько глубокий анализ нужен?",
+        placeholder: "Быстрый обзор / подробный отчёт…",
+      },
+      {
+        id: "sources_pref",
+        prompt: "Каким источникам доверяете больше?",
+        placeholder: "Официальные сайты, отчёты, отзывы…",
+      },
+    ],
+  },
+];
+
 export const CHATS = [
   { title: "Архитектура Adelai Workspace", time: "2 мин", pinned: true, folder: "Product" },
   { title: "Рефакторинг NightPlanet", time: "24 мин", pinned: true, folder: "Code" },
