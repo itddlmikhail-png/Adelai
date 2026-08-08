@@ -89,16 +89,15 @@ export default function AgentsPage() {
               </div>
             </dl>
 
-            <SoftButton
-              variant="soft"
-              className="mt-5 w-full"
-              onClick={() => {
-                if (a.trained) setSelectedId(a.id);
-                else setOpen(true);
-              }}
-            >
-              {a.trained ? "Открыть" : "Создать похожего"}
-            </SoftButton>
+            {a.trained && (
+              <SoftButton
+                variant="soft"
+                className="mt-5 w-full"
+                onClick={() => setSelectedId(a.id)}
+              >
+                Открыть
+              </SoftButton>
+            )}
           </Panel>
         ))}
       </div>
