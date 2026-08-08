@@ -10,12 +10,7 @@ const actions = [
   { href: "/workspace/image", label: "Создать изображение", icon: "image" },
 ];
 
-const metrics = [
-  { label: "Память", value: "42%", hint: "Project memory" },
-  { label: "AI usage", value: "18.4k", hint: "токенов сегодня" },
-  { label: "Запросы", value: "1 284", hint: "за 30 дней" },
-  { label: "Подписка", value: "Pro", hint: "$20 / мес" },
-];
+const AI_USAGE_PERCENT = 42;
 
 export default function WorkspaceHomePage() {
   return (
@@ -36,17 +31,35 @@ export default function WorkspaceHomePage() {
         ))}
       </div>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((m) => (
-          <Panel key={m.label} className="p-6">
-            <div className="text-[12px] uppercase tracking-[0.14em] text-mist">{m.label}</div>
-            <div className="mt-4 font-display text-[32px] font-semibold tracking-tight">
-              {m.value}
-            </div>
-            <div className="mt-2 text-[13px] text-mist">{m.hint}</div>
-          </Panel>
-        ))}
-      </div>
+      <Panel className="mb-8 p-5 sm:p-6">
+        <div className="flex items-baseline justify-between gap-4">
+          <div className="text-[12px] uppercase tracking-[0.14em] text-mist">
+            AI usage
+          </div>
+          <div className="font-display text-[22px] font-semibold tracking-tight tabular-nums sm:text-[24px]">
+            {AI_USAGE_PERCENT}%
+          </div>
+        </div>
+        <div
+          className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08]"
+          role="progressbar"
+          aria-label="AI usage"
+          aria-valuenow={AI_USAGE_PERCENT}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-white/75 to-white transition-[width] duration-700 ease-out"
+            style={{ width: `${AI_USAGE_PERCENT}%` }}
+          />
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-3 text-[13px] text-mist">
+          <span>Использовано в этом цикле</span>
+          <span className="tabular-nums text-white/70">
+            {AI_USAGE_PERCENT} / 100
+          </span>
+        </div>
+      </Panel>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Panel className="p-6 lg:col-span-1">
