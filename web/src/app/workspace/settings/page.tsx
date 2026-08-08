@@ -51,9 +51,8 @@ export default function SettingsPage() {
     setSigningOut(true);
     try {
       await signOut();
+    } finally {
       router.replace("/sign-in/");
-    } catch {
-      setSigningOut(false);
     }
   };
 

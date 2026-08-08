@@ -10,13 +10,14 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { getAuthProfile, type AuthProfile } from "../lib/auth";
-import { supabase } from "../lib/supabase";
+import { isSupabaseConfigured, supabase } from "../lib/supabase";
 
 type AuthContextValue = {
   session: Session | null;
   user: User | null;
   profile: AuthProfile | null;
   loading: boolean;
+  configured: boolean;
   refresh: () => Promise<void>;
 };
 
@@ -27,28 +28,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
-    const { data } = await supabase.auth.getSession();
-    setSession(data.session);
-    setUser(data.session?.user ?? null);
-    setLoading(false);
+  const applySession = useCallback((next: Session | null) => {
+    setSession(next);
+    setUser(next?.user ?? null);
   }, []);
+
+  const refresh = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      applySession(null);
+      setLoading(false);
+      return;
+    }
+    const { data } = await supabase.auth.getSession();
+    applySession(data.session);
+    setLoading(false);
+  }, [applySession]);
 
   useEffect(() => {
     let mounted = true;
 
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+      applySession(data.session);
       setLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
+      if (!mounted) return;
+      applySession(nextSession);
       setLoading(false);
     });
 
@@ -56,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [applySession]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -64,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       profile: getAuthProfile(user),
       loading,
+      configured: isSupabaseConfigured,
       refresh,
     }),
     [session, user, loading, refresh]

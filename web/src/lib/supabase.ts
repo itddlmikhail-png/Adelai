@@ -1,23 +1,37 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
 
-export const isSupabaseConfigured = Boolean(
-  supabaseUrl &&
-    supabaseAnonKey &&
-    !supabaseUrl.includes("placeholder") &&
-    supabaseAnonKey !== "placeholder-anon-key"
-);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-// Placeholder values keep static builds working before env is provided.
-const url = supabaseUrl || "https://placeholder.supabase.co";
-const anonKey = supabaseAnonKey || "placeholder-anon-key";
+function createSupabaseClient(): SupabaseClient {
+  if (!isSupabaseConfigured) {
+    // Keep static export builds green before secrets are provided.
+    // Auth calls are blocked in UI via isSupabaseConfigured.
+    return createClient(
+      "https://placeholder.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder",
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      }
+    );
+  }
 
-export const supabase: SupabaseClient = createClient(url, anonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: "pkce",
+      // Stable key under /Adelai on GitHub Pages
+      storageKey: "adelai-auth",
+    },
+  });
+}
+
+export const supabase: SupabaseClient = createSupabaseClient();

@@ -21,9 +21,8 @@ export function Topbar() {
     setMenuOpen(false);
     try {
       await signOut();
+    } finally {
       router.replace("/sign-in/");
-    } catch {
-      setSigningOut(false);
     }
   };
 

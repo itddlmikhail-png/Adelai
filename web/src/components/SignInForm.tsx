@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 import { mapAuthError, siteAuthUrl } from "../lib/auth";
-import { supabase } from "../lib/supabase";
+import { isSupabaseConfigured, supabase } from "../lib/supabase";
 
 function GoogleIcon() {
   return (
@@ -42,7 +42,7 @@ type Mode = "signin" | "reset";
 
 export function SignInForm() {
   const router = useRouter();
-  const { session, loading } = useAuth();
+  const { session, loading, refresh, configured } = useAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,6 +69,13 @@ export function SignInForm() {
     setError("");
 
     try {
+      if (!isSupabaseConfigured) {
+        setError(
+          "Авторизация не настроена. Добавьте NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY."
+        );
+        return;
+      }
+
       if (mode === "reset") {
         if (!email.trim()) {
           setError("Введите почту, чтобы восстановить пароль.");
@@ -76,7 +83,7 @@ export function SignInForm() {
         }
 
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-          email.trim(),
+          email.trim().toLowerCase(),
           { redirectTo: siteAuthUrl("/sign-in/") }
         );
 
@@ -92,7 +99,7 @@ export function SignInForm() {
       }
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
       });
 
@@ -102,13 +109,14 @@ export function SignInForm() {
       }
 
       if (data.session) {
-        router.push("/workspace/");
+        await refresh();
+        router.replace("/workspace/");
         return;
       }
 
       setError("Не удалось войти. Попробуйте ещё раз.");
-    } catch {
-      setError("Не удалось войти. Попробуйте ещё раз.");
+    } catch (err) {
+      setError(err instanceof Error ? mapAuthError(err) : "Не удалось войти. Попробуйте ещё раз.");
     } finally {
       setSubmitting(false);
     }
@@ -126,6 +134,12 @@ export function SignInForm() {
             : "Укажите почту — пришлём ссылку для сброса пароля."}
         </p>
       </div>
+
+      {!configured && (
+        <p className="animate-fade-in mt-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-center text-sm text-amber-100">
+          Supabase ещё не подключён. Добавьте ключи проекта, затем пересоберите сайт.
+        </p>
+      )}
 
       <div
         className="animate-rise-in mt-8 space-y-3"
@@ -187,6 +201,7 @@ export function SignInForm() {
               name="password"
               autoComplete="current-password"
               required
+              minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"

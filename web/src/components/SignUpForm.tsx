@@ -5,11 +5,11 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 import { mapAuthError, siteAuthUrl } from "../lib/auth";
-import { supabase } from "../lib/supabase";
+import { isSupabaseConfigured, supabase } from "../lib/supabase";
 
 export function SignUpForm() {
   const router = useRouter();
-  const { session, loading } = useAuth();
+  const { session, loading, refresh, configured } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,8 +32,20 @@ export function SignUpForm() {
     setError("");
 
     try {
+      if (!isSupabaseConfigured) {
+        setError(
+          "Авторизация не настроена. Добавьте NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY."
+        );
+        return;
+      }
+
+      if (password.trim().length < 6) {
+        setError("Пароль слишком короткий. Используйте не менее 6 символов.");
+        return;
+      }
+
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
         options: {
           data: {
@@ -48,16 +60,27 @@ export function SignUpForm() {
         return;
       }
 
+      // Supabase may return a user with empty identities when email already exists.
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        setError("Этот email уже зарегистрирован. Войдите или восстановите пароль.");
+        return;
+      }
+
       if (data.session) {
-        router.push("/workspace/");
+        await refresh();
+        router.replace("/workspace/");
         return;
       }
 
       setMessage(
         "Мы отправили письмо для подтверждения аккаунта. Подтвердите email и войдите."
       );
-    } catch {
-      setError("Не удалось создать аккаунт. Попробуйте ещё раз.");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? mapAuthError(err)
+          : "Не удалось создать аккаунт. Попробуйте ещё раз."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -73,6 +96,12 @@ export function SignUpForm() {
           Зарегистрируйтесь в Adelai, чтобы открыть личный кабинет.
         </p>
       </div>
+
+      {!configured && (
+        <p className="animate-fade-in mt-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-center text-sm text-amber-100">
+          Supabase ещё не подключён. Добавьте ключи проекта, затем пересоберите сайт.
+        </p>
+      )}
 
       <form
         onSubmit={onSubmit}
