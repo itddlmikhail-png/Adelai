@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { clearSession, getSession, type Session } from "../../../lib/auth";
+import { useAuth } from "../../../components/AuthProvider";
+import { signOut } from "../../../lib/auth";
 import { PageTitle, Panel, SoftButton } from "../../../components/workspace/ui";
 
 const sections = [
@@ -42,15 +43,18 @@ const sections = [
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [session, setSessionState] = useState<Session | null>(null);
+  const { profile } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
 
-  useEffect(() => {
-    setSessionState(getSession());
-  }, []);
-
-  const signOut = () => {
-    clearSession();
-    router.replace("/sign-in/");
+  const onSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+      router.replace("/sign-in/");
+    } catch {
+      setSigningOut(false);
+    }
   };
 
   return (
@@ -62,14 +66,16 @@ export default function SettingsPage() {
 
       <Panel className="mb-6 flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
-          <div className="text-[12px] uppercase tracking-[0.14em] text-mist">Аккаунт</div>
-          <div className="mt-2 font-display text-xl font-semibold">
-            {session?.name || "Гость"}
+          <div className="text-[12px] uppercase tracking-[0.14em] text-mist">
+            Аккаунт
           </div>
-          <div className="mt-1 text-[14px] text-mist">{session?.email}</div>
+          <div className="mt-2 font-display text-xl font-semibold">
+            {profile?.name || "Гость"}
+          </div>
+          <div className="mt-1 text-[14px] text-mist">{profile?.email}</div>
         </div>
-        <SoftButton variant="soft" onClick={signOut}>
-          Выйти из кабинета
+        <SoftButton variant="soft" onClick={onSignOut} disabled={signingOut}>
+          {signingOut ? "Выходим…" : "Sign out"}
         </SoftButton>
       </Panel>
 
@@ -85,9 +91,9 @@ export default function SettingsPage() {
                 >
                   <span>
                     {item === "Имя"
-                      ? session?.name || item
+                      ? profile?.name || item
                       : item === "Email"
-                        ? session?.email || item
+                        ? profile?.email || item
                         : item}
                   </span>
                   <span className="text-mist">→</span>

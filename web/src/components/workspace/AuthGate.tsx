@@ -1,40 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, type Session } from "../../lib/auth";
+import { useAuth } from "../AuthProvider";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [session, setSessionState] = useState<Session | null | undefined>(
-    undefined
-  );
+  const { session, loading } = useAuth();
 
   useEffect(() => {
-    const sync = () => setSessionState(getSession());
-    sync();
-    window.addEventListener("storage", sync);
-    window.addEventListener("adelai:auth", sync);
-    return () => {
-      window.removeEventListener("storage", sync);
-      window.removeEventListener("adelai:auth", sync);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (session === null) {
+    if (!loading && !session) {
       router.replace("/sign-in/");
     }
-  }, [session, router]);
+  }, [loading, session, router]);
 
-  if (session === undefined) {
+  if (loading) {
     return (
       <div className="flex h-[100svh] items-center justify-center bg-ink text-white">
         <div className="animate-fade-in text-center">
           <div className="font-display text-2xl font-semibold tracking-tight">
             Adelai
           </div>
-          <p className="mt-3 text-sm text-mist">Открываем кабинет…</p>
+          <p className="mt-3 text-sm text-mist">Проверяем сессию…</p>
         </div>
       </div>
     );

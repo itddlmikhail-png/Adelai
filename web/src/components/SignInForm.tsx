@@ -1,12 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getSession,
-  signInWithEmail,
-  signInWithProvider,
-} from "../lib/auth";
+import { useAuth } from "./AuthProvider";
+import { mapAuthError, siteAuthUrl } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 
 function GoogleIcon() {
   return (
@@ -43,6 +42,7 @@ type Mode = "signin" | "reset";
 
 export function SignInForm() {
   const router = useRouter();
+  const { session, loading } = useAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,54 +51,67 @@ export function SignInForm() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (getSession()) {
+    if (!loading && session) {
       router.replace("/workspace/");
     }
-  }, [router]);
+  }, [loading, session, router]);
 
-  const enterWorkspace = () => {
-    router.push("/workspace/");
+  const onSocial = () => {
+    setError("Вход через Google и Apple пока недоступен. Используйте email и пароль.");
   };
 
-  const onSocial = (provider: "google" | "apple") => {
-    setError("");
-    setSubmitting(true);
-    window.setTimeout(() => {
-      try {
-        signInWithProvider(provider);
-        enterWorkspace();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Не удалось войти.");
-        setSubmitting(false);
-      }
-    }, 280);
-  };
-
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+
     setSubmitting(true);
     setMessage("");
     setError("");
 
-    window.setTimeout(() => {
+    try {
       if (mode === "reset") {
-        setMessage(
-          email.trim()
-            ? "Если аккаунт существует, мы отправили ссылку для восстановления на почту."
-            : "Введите почту, чтобы восстановить пароль."
+        if (!email.trim()) {
+          setError("Введите почту, чтобы восстановить пароль.");
+          return;
+        }
+
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+          email.trim(),
+          { redirectTo: siteAuthUrl("/sign-in/") }
         );
-        setSubmitting(false);
+
+        if (resetError) {
+          setError(mapAuthError(resetError));
+          return;
+        }
+
+        setMessage(
+          "Если аккаунт существует, мы отправили ссылку для восстановления на почту."
+        );
         return;
       }
 
-      try {
-        signInWithEmail(email, password);
-        enterWorkspace();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Не удалось войти.");
-        setSubmitting(false);
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        setError(mapAuthError(signInError));
+        return;
       }
-    }, 350);
+
+      if (data.session) {
+        router.push("/workspace/");
+        return;
+      }
+
+      setError("Не удалось войти. Попробуйте ещё раз.");
+    } catch {
+      setError("Не удалось войти. Попробуйте ещё раз.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -121,7 +134,7 @@ export function SignInForm() {
         <button
           type="button"
           disabled={submitting}
-          onClick={() => onSocial("google")}
+          onClick={onSocial}
           className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white text-[15px] font-semibold text-ink transition hover:bg-white/92 disabled:opacity-60 active:scale-[0.99]"
         >
           <GoogleIcon />
@@ -130,7 +143,7 @@ export function SignInForm() {
         <button
           type="button"
           disabled={submitting}
-          onClick={() => onSocial("apple")}
+          onClick={onSocial}
           className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-white/12 bg-black text-[15px] font-semibold text-white transition hover:bg-black/80 disabled:opacity-60 active:scale-[0.99]"
         >
           <AppleIcon />
@@ -222,6 +235,15 @@ export function SignInForm() {
           >
             ← Назад ко входу
           </button>
+        )}
+
+        {mode === "signin" && (
+          <p className="text-center text-sm text-mist">
+            Нет аккаунта?{" "}
+            <Link href="/sign-up/" className="text-white transition hover:text-white/80">
+              Создать аккаунт
+            </Link>
+          </p>
         )}
 
         {(message || error) && (

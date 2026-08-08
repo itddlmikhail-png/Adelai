@@ -1,43 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { clearSession, getSession, type Session } from "../../lib/auth";
+import { useAuth } from "../AuthProvider";
+import { signOut } from "../../lib/auth";
 import { Icon, IconButton } from "./ui";
 import { useWorkspaceChrome } from "./WorkspaceChrome";
 
 export function Topbar() {
   const router = useRouter();
+  const { profile } = useAuth();
   const { toggleNav } = useWorkspaceChrome();
-  const [session, setSessionState] = useState<Session | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
-  useEffect(() => {
-    const sync = () => setSessionState(getSession());
-    sync();
-    window.addEventListener("adelai:auth", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("adelai:auth", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
-
-  const signOut = () => {
-    clearSession();
+  const onSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
     setMenuOpen(false);
-    router.replace("/sign-in/");
+    try {
+      await signOut();
+      router.replace("/sign-in/");
+    } catch {
+      setSigningOut(false);
+    }
   };
 
-  const name = session?.name || "Гость";
-  const initials = session?.initials || "A";
-  const providerLabel =
-    session?.provider === "google"
-      ? "Google"
-      : session?.provider === "apple"
-        ? "Apple"
-        : "Email";
+  const name = profile?.name || "Гость";
+  const initials = profile?.initials || "A";
 
   return (
     <header className="relative flex h-14 shrink-0 items-center gap-2.5 border-b border-white/[0.06] px-3 sm:h-16 sm:gap-4 sm:px-5 md:px-8 lg:h-[72px]">
@@ -92,9 +83,7 @@ export function Topbar() {
               <span className="block text-[13px] font-medium leading-none">
                 {name}
               </span>
-              <span className="mt-1 block text-[11px] text-mist">
-                {providerLabel}
-              </span>
+              <span className="mt-1 block text-[11px] text-mist">Email</span>
             </span>
           </button>
 
@@ -103,7 +92,7 @@ export function Topbar() {
               <div className="px-3 py-2">
                 <div className="truncate text-[13px] font-medium">{name}</div>
                 <div className="truncate text-[11px] text-mist">
-                  {session?.email}
+                  {profile?.email}
                 </div>
               </div>
               <Link
@@ -115,10 +104,11 @@ export function Topbar() {
               </Link>
               <button
                 type="button"
-                onClick={signOut}
-                className="block w-full rounded-xl px-3 py-2.5 text-left text-[13px] text-red-300 transition hover:bg-white/[0.06]"
+                onClick={onSignOut}
+                disabled={signingOut}
+                className="block w-full rounded-xl px-3 py-2.5 text-left text-[13px] text-red-300 transition hover:bg-white/[0.06] disabled:opacity-60"
               >
-                Выйти
+                {signingOut ? "Выходим…" : "Sign out"}
               </button>
             </div>
           )}

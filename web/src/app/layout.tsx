@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Syne, Manrope } from "next/font/google";
 import { AppChrome } from "../components/AppChrome";
+import { AuthProvider } from "../components/AuthProvider";
 import "./globals.css";
 
 const display = Syne({
@@ -35,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${display.variable} ${sans.variable}`}>
       <body className="bg-ink text-white antialiased">
-        <AppChrome>{children}</AppChrome>
+        <AuthProvider>
+          <AppChrome>{children}</AppChrome>
+        </AuthProvider>
       </body>
     </html>
   );
